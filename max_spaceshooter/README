@@ -1,0 +1,41 @@
+************************************
+* Captain's log - 2014.09.11 10:56 *
+************************************
+
+	Some graphics have been added and I have started to understand the beauty of starling.
+	I have so far successfully exported a sprite sheet from Flash and managed to get it 
+	to animate nicely. I have also implemented an input handler which now works as intended.
+
+	Next I will play around some with movement of the aircraft to get a smooth feeling and 
+	nextly I'll add the first enemy - the Phaser. 
+
+************************************
+* Captain's log - 2014.09.12 11:12 *
+************************************
+
+	I have implemented a screen system to load which part of the game that should be 
+	loaded while changing between screens. So far I have made the basic InGame screen
+	which displays a button which once pressed disappears and the player's ship is 
+	animated into the game.
+
+	Resisting knowledge is futile. It was naive of me to believe that I could start implementing
+	the enemies at this early stage. I will first focus on implementing an animated background
+	and then add weapons to the player's ship. After that I might integrate the first enemy.
+
+************************************
+* Captain's log - 2014.09.22 11:34 *
+************************************
+
+	All the information printed to the console was getting messy. Therefore a debugger was 
+	written to more easily see what was going on. For easier state handling I rewrote the 
+	former variable into a getter method using the debugger previously mentioned making it 
+	crystal clear which gameState is currently running. 
+
+	The first enemy was implemented some time ago. Simple AI - the Phaser simple attempts 
+	to follow the player's y-axis movements. If the primary weapon has cooled from the 
+	last laser blast it will attempt to fire once it is on the height as the player.
+
+	The background is animated with parallax and weapons has been added as an Interface for 
+	all aircrafts to implement. I also started categorizing the different types of objects
+	to structurize the project more. Next I'll make sure the game is replayable once
+	the player dies and that another enemy spawns upon the death of it's comrade(s). 

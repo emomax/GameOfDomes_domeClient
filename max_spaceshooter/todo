@@ -1,0 +1,14 @@
+	
+	TODO:
+
+	* Remove start button on level 1							[X]
+	* Fix player dies bug.										[X]
+	* Fix so player doesn't cover conversation screen			[X]
+	* Add chat box												[X]
+	* Add conversation and harder Drone combinations (level 2)	[ ]
+	* Add conversation and combine Drone and Phasers (level 2)	[ ]
+	* Add level 3 start conversation and boss.					[ ]
+	* Shorten fanfare sound or prolong boss explosion			[X]
+	* Make Phasers on lvl 2 MUCH harder.						[X]
+	* Inform that Drones can't be killed						[X]
+	* Add shieldHit when hit by Drone							[X]

@@ -1,0 +1,3 @@
+C:/Users/Tobias/Desktop/test/build/CMakeFiles/osgExample.dir
+C:/Users/Tobias/Desktop/test/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Tobias/Desktop/test/build/CMakeFiles/ZERO_CHECK.dir

@@ -1,4 +1,4 @@
-﻿Build started 2015-02-05 10:05:51.
+﻿Build started 2015-02-06 08:28:08.
      1>Project "C:\Users\Tobias\Desktop\test\build\osgExample.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files\SGCT\SGCT_2.3.1\include" /I"C:\Program Files\SGCT\osg\osg_3.2.0_msvc12_x64\include" /Zi /nologo /W3 /WX- /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D __WIN32__ /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"osgExample.dir\Debug\\" /Fd"osgExample.dir\Debug\vc120.pdb" /Gd /TP /errorReport:prompt C:\Users\Tobias\Desktop\test\osgExample\main.cpp
@@ -178,4 +178,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:08.76
+Time Elapsed 00:00:09.14

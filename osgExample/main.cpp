@@ -5,22 +5,13 @@
 #include <osg/MatrixTransform>
 #include <osg/ComputeBoundsVisitor>
 
-//cube
-#include <osg/geode>
-#include <osg/shape>
-#include <osg/shapedrawable>
-
 #include <osg/Depth>
-#include <osgUtil/CullVisitor>
-#include <osg/TextureCubeMap>
-#include <osg/Transform>
 #include <osg/TexGen>
+#include <osg/TextureCubeMap>
 #include <osg/ShapeDrawable>
 #include <osg/Geode>
-#include <osg/MatrixTransform>
 #include <osgDB/ReadFile>
-#include <osgViewer/Viewer>
-
+#include <osgUtil/CullVisitor>
 
 sgct::Engine * gEngine;
 
@@ -60,8 +51,7 @@ bool arrowButtons[4];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
 const double navigation_speed = 1.0;
 
-//skybox specifics *************************************************
-
+//skyboxclass  *********************************************************
 class SkyBox : public osg::Transform
 {
 public:
@@ -81,7 +71,6 @@ public:
 protected:
 	virtual ~SkyBox() {}
 };
-
 
 SkyBox::SkyBox()
 {
@@ -141,7 +130,7 @@ bool SkyBox::computeWorldToLocalMatrix(osg::Matrix& matrix, osg::NodeVisitor* nv
 	else
 		return osg::Transform::computeWorldToLocalMatrix(matrix, nv);
 }
-//*************************************************
+//skyboxclass  *********************************************************
 
 int main( int argc, char* argv[] )
 {
@@ -169,35 +158,6 @@ int main( int argc, char* argv[] )
 	sgct::SharedData::instance()->setEncodeFunction( myEncodeFun );
 	sgct::SharedData::instance()->setDecodeFunction( myDecodeFun );
 
-	//skybox main *********************************************************
-
-	osg::ArgumentParser arguments(&argc, argv);
-	osg::ref_ptr<osg::Node> scene = osgDB::readNodeFiles(arguments);
-	if (!scene) scene = osgDB::readNodeFile("lz.osg.90,0,0.rot");
-
-	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	geode->addDrawable(new osg::ShapeDrawable(
-		new osg::Sphere(osg::Vec3(), scene->getBound().radius())));
-	geode->setCullingActive(false);
-
-	osg::ref_ptr<SkyBox> skybox = new SkyBox;
-	skybox->getOrCreateStateSet()->setTextureAttributeAndModes(0, new osg::TexGen);
-	skybox->setEnvironmentMap(0,
-		osgDB::readImageFile("Cubemap_snow/posx.jpg"), osgDB::readImageFile("Cubemap_snow/negx.jpg"),
-		osgDB::readImageFile("Cubemap_snow/posy.jpg"), osgDB::readImageFile("Cubemap_snow/negy.jpg"),
-		osgDB::readImageFile("Cubemap_snow/posz.jpg"), osgDB::readImageFile("Cubemap_snow/negz.jpg"));
-	skybox->addChild(geode.get());
-
-	osg::ref_ptr<osg::Group> root = new osg::Group;
-	root->addChild(scene.get());
-	root->addChild(skybox.get());
-
-	osgViewer::Viewer viewer;
-	viewer.setSceneData(root.get());
-	return viewer.run();
-
-	//skybox main *********************************************************
-
 	// Main loop
 	gEngine->render();
 
@@ -214,12 +174,32 @@ void myInitOGLFun()
 {
 	initOSG();
 
-	//create a cube
-	osg::Box* unitCube = new osg::Box(osg::Vec3(0, 0, 0), 1.0f);
-	osg::ShapeDrawable* unitCubeDrawable = new osg::ShapeDrawable(unitCube);
-	osg::Geode* basicShapesGeode = new osg::Geode();
-	basicShapesGeode->addDrawable(unitCubeDrawable);
+	//skybox main *******************************************
+	//osg::ArgumentParser arguments(&argc, argv);
+	//osg::ref_ptr<osg::Node> scene = osgDB::readNodeFiles(arguments);
+	//if (!scene) scene = osgDB::readNodeFile("lz.osg.90,0,0.rot");
 
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	geode->addDrawable(new osg::ShapeDrawable(
+		new osg::Sphere(osg::Vec3(), 1)));  //scene->getBound().radius())));
+	geode->setCullingActive(false);
+
+	osg::ref_ptr<SkyBox> skybox = new SkyBox;
+	skybox->getOrCreateStateSet()->setTextureAttributeAndModes(0, new osg::TexGen);
+	skybox->setEnvironmentMap(0,
+		osgDB::readImageFile("texture.png"), osgDB::readImageFile("texture.png"),		//"Cubemap_snow/posx.jpg"
+		osgDB::readImageFile("texture.png"), osgDB::readImageFile("texture.png"),
+		osgDB::readImageFile("texture.png"), osgDB::readImageFile("texture.png"));
+	skybox->addChild(geode.get());
+
+	osg::ref_ptr<osg::Group> root = new osg::Group;
+	//root->addChild(scene.get());
+	root->addChild(skybox.get());
+
+	//osgViewer::Viewer viewer;
+	//viewer.setSceneData(root.get());
+	//return viewer.run();
+	//skybox main ***********************************************
 
 	osg::ref_ptr<osg::Node>            mModel;
 	osg::ref_ptr<osg::MatrixTransform> mModelTrans;
@@ -231,12 +211,11 @@ void myInitOGLFun()
 	mModelTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
                                             1.0f, 0.0f, 0.0f));
 
-	// add the cube to the scene
-	mRootNode->addChild(basicShapesGeode);
+	//add skybox to the scene graph
+	mRootNode->addChild(root.get());
 
 	mRootNode->addChild( mSceneTrans.get() );
-	//mSceneTrans->addChild( mModelTrans.get() );
-
+	mSceneTrans->addChild( mModelTrans.get() );
 
 	sgct::MessageHandler::instance()->print("Loading model 'airplane.ive'...\n");
 	mModel = osgDB::readNodeFile("airplane.ive");

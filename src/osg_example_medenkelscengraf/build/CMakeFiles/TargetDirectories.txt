@@ -1,0 +1,3 @@
+C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/src/osg_example_medenkelscengraf/build/CMakeFiles/osgExample.dir
+C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/src/osg_example_medenkelscengraf/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/src/osg_example_medenkelscengraf/build/CMakeFiles/ZERO_CHECK.dir

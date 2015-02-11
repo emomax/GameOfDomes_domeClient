@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="Windows-1252"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\src\osg_example_medenkelscengraf\build\CMakeFiles\bd94a4d92b46014a3a52a48ce6813f03\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{10CDEC0B-8012-4162-9B2B-6EA8B97309AF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -5,6 +5,12 @@
 #include <osg/MatrixTransform>
 #include <osg/ComputeBoundsVisitor>
 
+#include <osg/Camera>
+#include <osgGA/KeySwitchMatrixManipulator>
+#include <osgGA/TrackballManipulator>
+#include <osgGA/NodeTrackerManipulator>
+
+
 #include <osg/Depth>
 #include <osg/TexGen>
 #include <osg/TextureCubeMap>
@@ -22,6 +28,9 @@ osgViewer::Viewer * mViewer;
 osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
 osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster
+
+//From cookbook for camera to track model
+osg::ref_ptr<osgGA::NodeTrackerManipulator> nodeTracker = new osgGA::NodeTrackerManipulator;
 
 //callbacks
 void myInitOGLFun();
@@ -143,6 +152,11 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 
+	//From cookbook
+	//nodeTracker->setHomePosition(osg::Vec3(0, -10.0, 0), osg::Vec3(), osg::Z_AXIS);
+	nodeTracker->setTrackerMode(osgGA::NodeTrackerManipulator::NODE_CENTER_AND_ROTATION);
+	nodeTracker->setRotationMode(osgGA::NodeTrackerManipulator::TRACKBALL);
+
 	//fix incompability with warping and OSG
 	sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
 
@@ -220,6 +234,8 @@ void myInitOGLFun()
 	sgct::MessageHandler::instance()->print("Loading model 'airplane.ive'...\n");
 	mModel = osgDB::readNodeFile("airplane.ive");
 
+	nodeTracker->setTrackNode(mModelTrans); //cookbook bit
+
 	if ( mModel.valid() )
 	{
 		sgct::MessageHandler::instance()->print("Model loaded successfully!\n");
@@ -291,6 +307,7 @@ void myPostSyncPreDrawFun()
 	mFrameStamp->setSimulationTime( curr_time.getVal() );
 	mViewer->setFrameStamp( mFrameStamp.get() );
 	mViewer->advance( curr_time.getVal() ); //update
+	mViewer->setCameraManipulator(nodeTracker.get());//cookbook
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())

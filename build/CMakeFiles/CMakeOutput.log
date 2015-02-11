@@ -1,4 +1,4 @@
-The system is: Windows - 6.1 - AMD64
+The system is: Windows - 6.2 - AMD64
 Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
 Compiler:  
 Build flags: 
@@ -7,11 +7,11 @@ Id flags:
 The output was:
 0
 Microsoft (R) Build Engine version 12.0.31101.0
-[Microsoft .NET Framework, version 4.0.30319.34209]
+[Microsoft .NET Framework, version 4.0.30319.34014]
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-Build started 2015-02-04 09:08:37.
-Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\3.1.1\CompilerIdC\CompilerIdC.vcxproj" on node 1 (default targets).
+Build started 2015-02-06 21:26:22.
+Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\3.1.1\CompilerIdC\CompilerIdC.vcxproj" on node 1 (default targets).
 PrepareForBuild:
   Creating directory "Debug\".
   Creating directory "Debug\CompilerIdC.tlog\".
@@ -22,7 +22,7 @@ ClCompile:
   CMakeCCompilerId.c
 Link:
   C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:".\CompilerIdC.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\CompilerIdC.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\CompilerIdC.lib" /MACHINE:X64 Debug\CMakeCCompilerId.obj
-  CompilerIdC.vcxproj -> C:\Users\Tobias\Desktop\test\build\CMakeFiles\3.1.1\CompilerIdC\.\CompilerIdC.exe
+  CompilerIdC.vcxproj -> C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\3.1.1\CompilerIdC\.\CompilerIdC.exe
 PostBuildEvent:
   for %%i in (cl.exe) do @echo CMAKE_C_COMPILER=%%~$PATH:i
   :VCEnd
@@ -30,20 +30,20 @@ PostBuildEvent:
 FinalizeBuildStatus:
   Deleting file "Debug\CompilerIdC.tlog\unsuccessfulbuild".
   Touching "Debug\CompilerIdC.tlog\CompilerIdC.lastbuildstate".
-Done Building Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\3.1.1\CompilerIdC\CompilerIdC.vcxproj" (default targets).
+Done Building Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\3.1.1\CompilerIdC\CompilerIdC.vcxproj" (default targets).
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:15.51
+Time Elapsed 00:00:00.81
 
 
 Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
 
 Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.vcxproj"
 
-The C compiler identification is MSVC, found in "C:/Users/Tobias/Desktop/test/build/CMakeFiles/3.1.1/CompilerIdC/CompilerIdC.exe"
+The C compiler identification is MSVC, found in "C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/3.1.1/CompilerIdC/CompilerIdC.exe"
 
 Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
 Compiler:  
@@ -53,11 +53,11 @@ Id flags:
 The output was:
 0
 Microsoft (R) Build Engine version 12.0.31101.0
-[Microsoft .NET Framework, version 4.0.30319.34209]
+[Microsoft .NET Framework, version 4.0.30319.34014]
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-Build started 2015-02-04 09:08:54.
-Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\3.1.1\CompilerIdCXX\CompilerIdCXX.vcxproj" on node 1 (default targets).
+Build started 2015-02-06 21:26:23.
+Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\3.1.1\CompilerIdCXX\CompilerIdCXX.vcxproj" on node 1 (default targets).
 PrepareForBuild:
   Creating directory "Debug\".
   Creating directory "Debug\CompilerIdCXX.tlog\".
@@ -68,7 +68,7 @@ ClCompile:
   CMakeCXXCompilerId.cpp
 Link:
   C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:".\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\CompilerIdCXX.lib" /MACHINE:X64 Debug\CMakeCXXCompilerId.obj
-  CompilerIdCXX.vcxproj -> C:\Users\Tobias\Desktop\test\build\CMakeFiles\3.1.1\CompilerIdCXX\.\CompilerIdCXX.exe
+  CompilerIdCXX.vcxproj -> C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\3.1.1\CompilerIdCXX\.\CompilerIdCXX.exe
 PostBuildEvent:
   for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
   :VCEnd
@@ -76,174 +76,174 @@ PostBuildEvent:
 FinalizeBuildStatus:
   Deleting file "Debug\CompilerIdCXX.tlog\unsuccessfulbuild".
   Touching "Debug\CompilerIdCXX.tlog\CompilerIdCXX.lastbuildstate".
-Done Building Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\3.1.1\CompilerIdCXX\CompilerIdCXX.vcxproj" (default targets).
+Done Building Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\3.1.1\CompilerIdCXX\CompilerIdCXX.vcxproj" (default targets).
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:03.38
+Time Elapsed 00:00:00.74
 
 
 Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
 
 Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcxproj"
 
-The CXX compiler identification is MSVC, found in "C:/Users/Tobias/Desktop/test/build/CMakeFiles/3.1.1/CompilerIdCXX/CompilerIdCXX.exe"
+The CXX compiler identification is MSVC, found in "C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/3.1.1/CompilerIdCXX/CompilerIdCXX.exe"
 
 Determining if the C compiler works passed with the following output:
-Change Dir: C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp
+Change Dir: C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec545246651.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec1151800615.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
 Microsoft (R) Build Engine version 12.0.31101.0
-[Microsoft .NET Framework, version 4.0.30319.34209]
+[Microsoft .NET Framework, version 4.0.30319.34014]
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-Build started 2015-02-04 09:08:59.
-Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec545246651.vcxproj" on node 1 (default targets).
+Build started 2015-02-06 21:26:24.
+Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec1151800615.vcxproj" on node 1 (default targets).
 PrepareForBuild:
-  Creating directory "cmTryCompileExec545246651.dir\Debug\".
-  Creating directory "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\".
-  Creating directory "cmTryCompileExec545246651.dir\Debug\cmTryCom.0CC52FC5.tlog\".
+  Creating directory "cmTryCompileExec1151800615.dir\Debug\".
+  Creating directory "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTryCompileExec1151800615.dir\Debug\cmTryCom.7F03E9DE.tlog\".
 InitializeBuildStatus:
-  Creating "cmTryCompileExec545246651.dir\Debug\cmTryCom.0CC52FC5.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+  Creating "cmTryCompileExec1151800615.dir\Debug\cmTryCom.7F03E9DE.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
 ClCompile:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec545246651.dir\Debug\\" /Fd"cmTryCompileExec545246651.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\testCCompiler.c
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec1151800615.dir\Debug\\" /Fd"cmTryCompileExec1151800615.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\testCCompiler.c
   Microsoft (R) C/C++ Optimizing Compiler Version 18.00.31101 for x64
   Copyright (C) Microsoft Corporation.  All rights reserved.
   
-  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec545246651.dir\Debug\\" /Fd"cmTryCompileExec545246651.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\testCCompiler.c
-  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec1151800615.dir\Debug\\" /Fd"cmTryCompileExec1151800615.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\testCCompiler.c
   testCCompiler.c
+  
 Link:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec545246651.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec545246651.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec545246651.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec545246651.dir\Debug\testCCompiler.obj
-  cmTryCompileExec545246651.vcxproj -> C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec545246651.exe
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec1151800615.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec1151800615.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec1151800615.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec1151800615.dir\Debug\testCCompiler.obj
+  cmTryCompileExec1151800615.vcxproj -> C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec1151800615.exe
 FinalizeBuildStatus:
-  Deleting file "cmTryCompileExec545246651.dir\Debug\cmTryCom.0CC52FC5.tlog\unsuccessfulbuild".
-  Touching "cmTryCompileExec545246651.dir\Debug\cmTryCom.0CC52FC5.tlog\cmTryCompileExec545246651.lastbuildstate".
-Done Building Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec545246651.vcxproj" (default targets).
+  Deleting file "cmTryCompileExec1151800615.dir\Debug\cmTryCom.7F03E9DE.tlog\unsuccessfulbuild".
+  Touching "cmTryCompileExec1151800615.dir\Debug\cmTryCom.7F03E9DE.tlog\cmTryCompileExec1151800615.lastbuildstate".
+Done Building Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec1151800615.vcxproj" (default targets).
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:04.25
+Time Elapsed 00:00:01.10
 
 
 Detecting C compiler ABI info compiled with the following output:
-Change Dir: C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp
+Change Dir: C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec3216407786.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec4170443187.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
 Microsoft (R) Build Engine version 12.0.31101.0
-[Microsoft .NET Framework, version 4.0.30319.34209]
+[Microsoft .NET Framework, version 4.0.30319.34014]
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-Build started 2015-02-04 09:09:04.
-Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec3216407786.vcxproj" on node 1 (default targets).
+Build started 2015-02-06 21:26:25.
+Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec4170443187.vcxproj" on node 1 (default targets).
 PrepareForBuild:
-  Creating directory "cmTryCompileExec3216407786.dir\Debug\".
-  Creating directory "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\".
-  Creating directory "cmTryCompileExec3216407786.dir\Debug\cmTryCom.63132C24.tlog\".
+  Creating directory "cmTryCompileExec4170443187.dir\Debug\".
+  Creating directory "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTryCompileExec4170443187.dir\Debug\cmTryCom.5749BABC.tlog\".
 InitializeBuildStatus:
-  Creating "cmTryCompileExec3216407786.dir\Debug\cmTryCom.63132C24.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+  Creating "cmTryCompileExec4170443187.dir\Debug\cmTryCom.5749BABC.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
 ClCompile:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec3216407786.dir\Debug\\" /Fd"cmTryCompileExec3216407786.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCCompilerABI.c"
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec4170443187.dir\Debug\\" /Fd"cmTryCompileExec4170443187.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCCompilerABI.c"
   Microsoft (R) C/C++ Optimizing Compiler Version 18.00.31101 for x64
   Copyright (C) Microsoft Corporation.  All rights reserved.
   
-  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec3216407786.dir\Debug\\" /Fd"cmTryCompileExec3216407786.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCCompilerABI.c"
-  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTryCompileExec4170443187.dir\Debug\\" /Fd"cmTryCompileExec4170443187.dir\Debug\vc120.pdb" /Gd /TC /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCCompilerABI.c"
   CMakeCCompilerABI.c
+  
 Link:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec3216407786.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec3216407786.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec3216407786.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec3216407786.dir\Debug\CMakeCCompilerABI.obj
-  cmTryCompileExec3216407786.vcxproj -> C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec3216407786.exe
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec4170443187.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec4170443187.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec4170443187.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec4170443187.dir\Debug\CMakeCCompilerABI.obj
+  cmTryCompileExec4170443187.vcxproj -> C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec4170443187.exe
 FinalizeBuildStatus:
-  Deleting file "cmTryCompileExec3216407786.dir\Debug\cmTryCom.63132C24.tlog\unsuccessfulbuild".
-  Touching "cmTryCompileExec3216407786.dir\Debug\cmTryCom.63132C24.tlog\cmTryCompileExec3216407786.lastbuildstate".
-Done Building Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec3216407786.vcxproj" (default targets).
+  Deleting file "cmTryCompileExec4170443187.dir\Debug\cmTryCom.5749BABC.tlog\unsuccessfulbuild".
+  Touching "cmTryCompileExec4170443187.dir\Debug\cmTryCom.5749BABC.tlog\cmTryCompileExec4170443187.lastbuildstate".
+Done Building Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec4170443187.vcxproj" (default targets).
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.88
+Time Elapsed 00:00:00.87
 
 
 Determining if the CXX compiler works passed with the following output:
-Change Dir: C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp
+Change Dir: C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec3655797242.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec2776573419.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
 Microsoft (R) Build Engine version 12.0.31101.0
-[Microsoft .NET Framework, version 4.0.30319.34209]
+[Microsoft .NET Framework, version 4.0.30319.34014]
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-Build started 2015-02-04 09:09:07.
-Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec3655797242.vcxproj" on node 1 (default targets).
+Build started 2015-02-06 21:26:26.
+Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec2776573419.vcxproj" on node 1 (default targets).
 PrepareForBuild:
-  Creating directory "cmTryCompileExec3655797242.dir\Debug\".
-  Creating directory "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\".
-  Creating directory "cmTryCompileExec3655797242.dir\Debug\cmTryCom.AA0020DD.tlog\".
+  Creating directory "cmTryCompileExec2776573419.dir\Debug\".
+  Creating directory "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTryCompileExec2776573419.dir\Debug\cmTryCom.A034A5A7.tlog\".
 InitializeBuildStatus:
-  Creating "cmTryCompileExec3655797242.dir\Debug\cmTryCom.AA0020DD.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+  Creating "cmTryCompileExec2776573419.dir\Debug\cmTryCom.A034A5A7.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
 ClCompile:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec3655797242.dir\Debug\\" /Fd"cmTryCompileExec3655797242.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\testCXXCompiler.cxx
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec2776573419.dir\Debug\\" /Fd"cmTryCompileExec2776573419.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\testCXXCompiler.cxx
   Microsoft (R) C/C++ Optimizing Compiler Version 18.00.31101 for x64
   Copyright (C) Microsoft Corporation.  All rights reserved.
   
-  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec3655797242.dir\Debug\\" /Fd"cmTryCompileExec3655797242.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\testCXXCompiler.cxx
-  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec2776573419.dir\Debug\\" /Fd"cmTryCompileExec2776573419.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\testCXXCompiler.cxx
   testCXXCompiler.cxx
+  
 Link:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec3655797242.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec3655797242.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec3655797242.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec3655797242.dir\Debug\testCXXCompiler.obj
-  cmTryCompileExec3655797242.vcxproj -> C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec3655797242.exe
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec2776573419.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec2776573419.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec2776573419.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec2776573419.dir\Debug\testCXXCompiler.obj
+  cmTryCompileExec2776573419.vcxproj -> C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec2776573419.exe
 FinalizeBuildStatus:
-  Deleting file "cmTryCompileExec3655797242.dir\Debug\cmTryCom.AA0020DD.tlog\unsuccessfulbuild".
-  Touching "cmTryCompileExec3655797242.dir\Debug\cmTryCom.AA0020DD.tlog\cmTryCompileExec3655797242.lastbuildstate".
-Done Building Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec3655797242.vcxproj" (default targets).
+  Deleting file "cmTryCompileExec2776573419.dir\Debug\cmTryCom.A034A5A7.tlog\unsuccessfulbuild".
+  Touching "cmTryCompileExec2776573419.dir\Debug\cmTryCom.A034A5A7.tlog\cmTryCompileExec2776573419.lastbuildstate".
+Done Building Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec2776573419.vcxproj" (default targets).
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.51
+Time Elapsed 00:00:00.84
 
 
 Detecting CXX compiler ABI info compiled with the following output:
-Change Dir: C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp
+Change Dir: C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec2656014181.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTryCompileExec3374614811.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
 Microsoft (R) Build Engine version 12.0.31101.0
-[Microsoft .NET Framework, version 4.0.30319.34209]
+[Microsoft .NET Framework, version 4.0.30319.34014]
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-Build started 2015-02-04 09:09:09.
-Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec2656014181.vcxproj" on node 1 (default targets).
+Build started 2015-02-06 21:26:28.
+Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec3374614811.vcxproj" on node 1 (default targets).
 PrepareForBuild:
-  Creating directory "cmTryCompileExec2656014181.dir\Debug\".
-  Creating directory "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\".
-  Creating directory "cmTryCompileExec2656014181.dir\Debug\cmTryCom.2F2F6326.tlog\".
+  Creating directory "cmTryCompileExec3374614811.dir\Debug\".
+  Creating directory "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTryCompileExec3374614811.dir\Debug\cmTryCom.1A1382A7.tlog\".
 InitializeBuildStatus:
-  Creating "cmTryCompileExec2656014181.dir\Debug\cmTryCom.2F2F6326.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+  Creating "cmTryCompileExec3374614811.dir\Debug\cmTryCom.1A1382A7.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
 ClCompile:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec2656014181.dir\Debug\\" /Fd"cmTryCompileExec2656014181.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCXXCompilerABI.cpp"
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec3374614811.dir\Debug\\" /Fd"cmTryCompileExec3374614811.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCXXCompilerABI.cpp"
   Microsoft (R) C/C++ Optimizing Compiler Version 18.00.31101 for x64
   Copyright (C) Microsoft Corporation.  All rights reserved.
   
-  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec2656014181.dir\Debug\\" /Fd"cmTryCompileExec2656014181.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCXXCompilerABI.cpp"
-  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTryCompileExec3374614811.dir\Debug\\" /Fd"cmTryCompileExec3374614811.dir\Debug\vc120.pdb" /Gd /TP /errorReport:queue "C:\Program Files (x86)\CMake\share\cmake-3.1\Modules\CMakeCXXCompilerABI.cpp"
   CMakeCXXCompilerABI.cpp
+  
 Link:
-  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec2656014181.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec2656014181.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Tobias/Desktop/test/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec2656014181.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec2656014181.dir\Debug\CMakeCXXCompilerABI.obj
-  cmTryCompileExec2656014181.vcxproj -> C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec2656014181.exe
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec3374614811.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec3374614811.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/CMakeFiles/CMakeTmp/Debug/cmTryCompileExec3374614811.lib" /MACHINE:X64  /machine:x64 /debug cmTryCompileExec3374614811.dir\Debug\CMakeCXXCompilerABI.obj
+  cmTryCompileExec3374614811.vcxproj -> C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\Debug\cmTryCompileExec3374614811.exe
 FinalizeBuildStatus:
-  Deleting file "cmTryCompileExec2656014181.dir\Debug\cmTryCom.2F2F6326.tlog\unsuccessfulbuild".
-  Touching "cmTryCompileExec2656014181.dir\Debug\cmTryCom.2F2F6326.tlog\cmTryCompileExec2656014181.lastbuildstate".
-Done Building Project "C:\Users\Tobias\Desktop\test\build\CMakeFiles\CMakeTmp\cmTryCompileExec2656014181.vcxproj" (default targets).
+  Deleting file "cmTryCompileExec3374614811.dir\Debug\cmTryCom.1A1382A7.tlog\unsuccessfulbuild".
+  Touching "cmTryCompileExec3374614811.dir\Debug\cmTryCom.1A1382A7.tlog\cmTryCompileExec3374614811.lastbuildstate".
+Done Building Project "C:\Users\Micke\Documents\GitHub\TNM094_spaceRPG\build\CMakeFiles\CMakeTmp\cmTryCompileExec3374614811.vcxproj" (default targets).
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.40
+Time Elapsed 00:00:00.74
 
 

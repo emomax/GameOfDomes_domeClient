@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Tobias/Desktop/test/osgExample
+# Install script for directory: C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/osgExample
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -33,7 +33,7 @@ else()
   set(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 endif()
 
-file(WRITE "C:/Users/Tobias/Desktop/test/build/${CMAKE_INSTALL_MANIFEST}" "")
+file(WRITE "C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/${CMAKE_INSTALL_MANIFEST}" "")
 foreach(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  file(APPEND "C:/Users/Tobias/Desktop/test/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  file(APPEND "C:/Users/Micke/Documents/GitHub/TNM094_spaceRPG/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 endforeach()

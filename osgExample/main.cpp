@@ -52,8 +52,8 @@ void setupLightSource();
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
 sgct::SharedDouble forward_speed(0.0);
-sgct::SharedDouble rotation_speed_turn(0.0);
-sgct::SharedDouble rotation_speed_roll(0.0);
+sgct::SharedDouble rotation_x(0.0);
+sgct::SharedDouble rotation_y(0.0);
 sgct::SharedBool wireframe(false);
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
@@ -61,8 +61,8 @@ sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool light(true);
 
 //other var
-bool arrowButtons[4];
-enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
+bool Buttons[6];
+enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN };
 const double navigation_speed = 1.0;
 const double turn_speed = 1.0;
 
@@ -166,8 +166,8 @@ int main(int argc, char* argv[])
 	//fix incompability with warping and OSG
 	sgct_core::ClusterManager::instance()->setMeshImplementation(sgct_core::ClusterManager::DISPLAY_LIST);
 
-	for (int i = 0; i<4; i++)
-		arrowButtons[i] = false;
+	for (int i = 0; i<6; i++)
+		Buttons[i] = false;
 
 	if (!gEngine->init())
 	{
@@ -230,9 +230,6 @@ void myInitOGLFun()
 
 	mPlayerTrans->setMatrix(osg::Matrix::identity());
 
-	//rotate osg coordinate system to match sgct
-	mPlayerTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
-		1.0f, 0.0f, 0.0f));
 
 	//add skybox to the scene graph
 	mRootNode->addChild(mPlayerTrans.get());
@@ -262,7 +259,10 @@ void myInitOGLFun()
 		tmpVec = bb.center();
 
 		//scale to fit model and translate model center to origin
-		mPlayerTrans->postMult(osg::Matrix::translate(-tmpVec));
+		
+		mPlayerTrans->postMult(osg::Matrix::rotate(glm::radians(-90.0f), 1.0, 0.0, 0.0));
+		mPlayerTrans->postMult(osg::Matrix::rotate(glm::radians(180.0f), 0.0, 1.0, 0.0));
+		mPlayerTrans->postMult(osg::Matrix::translate(0.0, -5.0, 0.0));
 		mPlayerTrans->postMult(osg::Matrix::scale(1.0f / bb.radius(), 1.0f / bb.radius(), 1.0f / bb.radius()));
 
 		sgct::MessageHandler::instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2]);
@@ -284,14 +284,18 @@ void myPreSyncFun()
 	{
 		curr_time.setVal(sgct::Engine::getTime());
 
-		if (arrowButtons[FORWARD])
+		if (Buttons[FORWARD])
 			forward_speed.setVal(forward_speed.getVal() + (navigation_speed * gEngine->getDt()));
-		if (arrowButtons[BACKWARD])
+		if (Buttons[BACKWARD])
 			forward_speed.setVal(forward_speed.getVal() - (navigation_speed * gEngine->getDt()));
-		if (arrowButtons[RIGHT])
-			rotation_speed_turn.setVal(rotation_speed_turn.getVal() - (turn_speed * gEngine->getDt()));
-		if (arrowButtons[LEFT])
-			rotation_speed_turn.setVal(rotation_speed_turn.getVal() + (turn_speed * gEngine->getDt()));
+		if (Buttons[RIGHT])
+			rotation_x.setVal(rotation_x.getVal() - (turn_speed * gEngine->getDt()));
+		if (Buttons[LEFT])
+			rotation_x.setVal(rotation_x.getVal() + (turn_speed * gEngine->getDt()));
+		if (Buttons[UP])
+			rotation_y.setVal(rotation_y.getVal() - (turn_speed * gEngine->getDt()));
+		if (Buttons[DOWN])
+			rotation_y.setVal(rotation_y.getVal() + (turn_speed * gEngine->getDt()));
 	}
 }
 
@@ -316,9 +320,11 @@ void myPostSyncPreDrawFun()
 	mNavTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
 		1.0f, 0.0f, 0.0f));
 
-	mNavTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
-	mNavTrans->postMult(osg::Matrix::rotate(rotation_speed_turn.getVal(), 0.0, 1.0, 0.0));
-	mNavTrans->postMult(osg::Matrix::translate(0.0, 0.0, forward_speed.getVal()));
+	//mNavTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
+	mNavTrans->postMult(osg::Matrix::rotate(rotation_x.getVal(), 0.0, 0.0, 1.0));
+	mNavTrans->postMult(osg::Matrix::rotate(rotation_y.getVal(), 0.0, 1.0, 0.0));
+	mNavTrans->postMult(osg::Matrix::translate(0.0, forward_speed.getVal(), 0.0));
+	mNavTrans->setMatrix(mNavTrans->getInverseMatrix());
 	
 	//std::cout << rotation_speed_turn.getVal() << forward_speed.getVal() << std::endl;
 
@@ -362,8 +368,8 @@ void myEncodeFun()
 {
 	sgct::SharedData::instance()->writeDouble(&curr_time);
 	sgct::SharedData::instance()->writeDouble(&forward_speed);
-	sgct::SharedData::instance()->writeDouble(&rotation_speed_turn);
-	sgct::SharedData::instance()->writeDouble(&rotation_speed_roll);
+	sgct::SharedData::instance()->writeDouble(&rotation_x);
+	sgct::SharedData::instance()->writeDouble(&rotation_y);
 	sgct::SharedData::instance()->writeBool(&wireframe);
 	sgct::SharedData::instance()->writeBool(&info);
 	sgct::SharedData::instance()->writeBool(&stats);
@@ -375,8 +381,8 @@ void myDecodeFun()
 {
 	sgct::SharedData::instance()->readDouble(&curr_time);
 	sgct::SharedData::instance()->readDouble(&forward_speed);
-	sgct::SharedData::instance()->readDouble(&rotation_speed_turn);
-	sgct::SharedData::instance()->readDouble(&rotation_speed_roll);
+	sgct::SharedData::instance()->readDouble(&rotation_x);
+	sgct::SharedData::instance()->readDouble(&rotation_y);
 	sgct::SharedData::instance()->readBool(&wireframe);
 	sgct::SharedData::instance()->readBool(&info);
 	sgct::SharedData::instance()->readBool(&stats);
@@ -397,7 +403,7 @@ void keyCallback(int key, int action)
 	{
 		switch (key)
 		{
-		case 'S':
+		case 'Z':
 			if (action == SGCT_PRESS)
 				stats.toggle();
 			break;
@@ -412,12 +418,12 @@ void keyCallback(int key, int action)
 				light.toggle();
 			break;
 
-		case 'W':
+		case 'F':
 			if (action == SGCT_PRESS)
 				wireframe.toggle();
 			break;
 
-		case 'Q':
+		case 'T':
 			if (action == SGCT_PRESS)
 				gEngine->terminate();
 			break;
@@ -428,18 +434,24 @@ void keyCallback(int key, int action)
 				takeScreenshot.setVal(true);
 			break;
 
-		case SGCT_KEY_UP:
-			arrowButtons[FORWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+		case 'W':
+			Buttons[FORWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 
-		case SGCT_KEY_DOWN:
-			arrowButtons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+		case 'S':
+			Buttons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
-		case SGCT_KEY_RIGHT:
-			arrowButtons[RIGHT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+		case 'D':
+			Buttons[RIGHT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
-		case SGCT_KEY_LEFT:
-			arrowButtons[LEFT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+		case 'A':
+			Buttons[LEFT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+			break;
+		case 'Q':
+			Buttons[UP] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+			break;
+		case 'E':
+			Buttons[DOWN] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 		}
 	}

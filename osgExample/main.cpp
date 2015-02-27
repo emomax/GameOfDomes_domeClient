@@ -26,13 +26,14 @@ sgct::Engine * gEngine;
 //and prevents segfault on Linux
 osgViewer::Viewer * mViewer;
 osg::ref_ptr<osg::Group> mRootNode;
+osg::ref_ptr<osg::MatrixTransform> mNavTrans;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform> mPlayerTrans;
 osg::ref_ptr<osg::MatrixTransform> mModelTrans;
 osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster
 
 //From cookbook for camera to track model
-osg::ref_ptr<osgGA::NodeTrackerManipulator> nodeTracker = new osgGA::NodeTrackerManipulator;
+//osg::ref_ptr<osgGA::NodeTrackerManipulator> nodeTracker = new osgGA::NodeTrackerManipulator;
 
 //callbacks
 void myInitOGLFun();
@@ -50,7 +51,9 @@ void setupLightSource();
 
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
-sgct::SharedDouble dist(-2.0);
+sgct::SharedDouble forward_speed(0.0);
+sgct::SharedDouble rotation_speed_turn(0.0);
+sgct::SharedDouble rotation_speed_roll(0.0);
 sgct::SharedBool wireframe(false);
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
@@ -61,6 +64,7 @@ sgct::SharedBool light(true);
 bool arrowButtons[4];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
 const double navigation_speed = 1.0;
+const double turn_speed = 1.0;
 
 //skyboxclass  *********************************************************
 class SkyBox : public osg::Transform
@@ -155,9 +159,9 @@ int main(int argc, char* argv[])
 	gEngine->setKeyboardCallbackFunction(keyCallback);
 
 	//From cookbook
-	nodeTracker->setHomePosition(osg::Vec3(0.0, 0.5, 0.0), osg::Vec3(0.0, 0.0, 0.0), osg::Z_AXIS);
-	nodeTracker->setTrackerMode(osgGA::NodeTrackerManipulator::NODE_CENTER_AND_ROTATION);
-	nodeTracker->setRotationMode(osgGA::NodeTrackerManipulator::TRACKBALL);
+	//nodeTracker->setHomePosition(osg::Vec3(0.0, 0.5, 0.0), osg::Vec3(0.0, 0.0, 0.0), osg::Z_AXIS);
+	//nodeTracker->setTrackerMode(osgGA::NodeTrackerManipulator::NODE_CENTER_AND_ROTATION);
+	//nodeTracker->setRotationMode(osgGA::NodeTrackerManipulator::TRACKBALL);
 
 	//fix incompability with warping and OSG
 	sgct_core::ClusterManager::instance()->setMeshImplementation(sgct_core::ClusterManager::DISPLAY_LIST);
@@ -203,14 +207,14 @@ void myInitOGLFun()
 	osg::ref_ptr<SkyBox> skybox = new SkyBox;
 	skybox->getOrCreateStateSet()->setTextureAttributeAndModes(0, new osg::TexGen);
 	skybox->setEnvironmentMap(0,
-		osgDB::readImageFile("texture.png"), osgDB::readImageFile("texture.png"),		//"Cubemap_snow/posx.jpg"
-		osgDB::readImageFile("texture.png"), osgDB::readImageFile("texture.png"),
-		osgDB::readImageFile("texture.png"), osgDB::readImageFile("texture.png"));
+		osgDB::readImageFile("Textures/tobpi_maxjo_skyboxtest1_right1.png"), osgDB::readImageFile("Textures/tobpi_maxjo_skyboxtest1_left2.png"),		//"Cubemap_snow/posx.jpg"
+		osgDB::readImageFile("Textures/tobpi_maxjo_skyboxtest1_bottom4.png"), osgDB::readImageFile("Textures/tobpi_maxjo_skyboxtest1_top3.png"),
+		osgDB::readImageFile("Textures/tobpi_maxjo_skyboxtest1_front5.png"), osgDB::readImageFile("Textures/tobpi_maxjo_skyboxtest1_back6.png"));
 	skybox->addChild(geode.get());
 
 	osg::ref_ptr<osg::Group> root = new osg::Group;
 	//root->addChild(scene.get());
-	root->addChild(skybox.get());
+	//root->addChild(skybox.get());
 
 	//osgViewer::Viewer viewer;
 	//viewer.setSceneData(root.get());
@@ -218,26 +222,30 @@ void myInitOGLFun()
 	//skybox main ***********************************************
 
 	osg::ref_ptr<osg::Node>            mModel;
-
+	
+	mNavTrans = new osg::MatrixTransform();
 	mSceneTrans = new osg::MatrixTransform();
 	mPlayerTrans = new osg::MatrixTransform();
 	mModelTrans = new osg::MatrixTransform();
+
+	mPlayerTrans->setMatrix(osg::Matrix::identity());
 
 	//rotate osg coordinate system to match sgct
 	mPlayerTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
 		1.0f, 0.0f, 0.0f));
 
 	//add skybox to the scene graph
-	mRootNode->addChild(root.get());
-
-	mRootNode->addChild(mSceneTrans.get());
-	mSceneTrans->addChild(mPlayerTrans.get());
+	mRootNode->addChild(mPlayerTrans.get());
+	mRootNode->addChild(mNavTrans.get());
+	
+	mNavTrans->addChild(mSceneTrans.get());
 	mSceneTrans->addChild(mModelTrans.get());
-
+	mSceneTrans->addChild(skybox.get());
+	
 	sgct::MessageHandler::instance()->print("Loading model 'airplane.ive'...\n");
 	mModel = osgDB::readNodeFile("airplane.ive");
 
-	nodeTracker->setTrackNode(mPlayerTrans); //cookbook bit
+	//nodeTracker->setTrackNode(mPlayerTrans); //cookbook bit
 
 	if (mModel.valid())
 	{
@@ -277,9 +285,13 @@ void myPreSyncFun()
 		curr_time.setVal(sgct::Engine::getTime());
 
 		if (arrowButtons[FORWARD])
-			dist.setVal(dist.getVal() + (navigation_speed * gEngine->getDt()));
+			forward_speed.setVal(forward_speed.getVal() + (navigation_speed * gEngine->getDt()));
 		if (arrowButtons[BACKWARD])
-			dist.setVal(dist.getVal() - (navigation_speed * gEngine->getDt()));
+			forward_speed.setVal(forward_speed.getVal() - (navigation_speed * gEngine->getDt()));
+		if (arrowButtons[RIGHT])
+			rotation_speed_turn.setVal(rotation_speed_turn.getVal() - (turn_speed * gEngine->getDt()));
+		if (arrowButtons[LEFT])
+			rotation_speed_turn.setVal(rotation_speed_turn.getVal() + (turn_speed * gEngine->getDt()));
 	}
 }
 
@@ -298,17 +310,24 @@ void myPostSyncPreDrawFun()
 	light.getVal() ? mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
-	mPlayerTrans->setMatrix(osg::Matrix::identity());
-	mPlayerTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
-	mPlayerTrans->postMult(osg::Matrix::rotate(glm::radians(dist.getVal() * 8.0), 0.0, 0.0, 1.0));
+	mNavTrans->setMatrix(osg::Matrix::identity());
+	
+	//rotate osg coordinate system to match sgct
+	mNavTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
+		1.0f, 0.0f, 0.0f));
 
-	mModelTrans->setMatrix(osg::Matrix::identity());
+	mNavTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
+	mNavTrans->postMult(osg::Matrix::rotate(rotation_speed_turn.getVal(), 0.0, 1.0, 0.0));
+	mNavTrans->postMult(osg::Matrix::translate(0.0, 0.0, forward_speed.getVal()));
+	
+	//std::cout << rotation_speed_turn.getVal() << forward_speed.getVal() << std::endl;
+
+	mModelTrans->setMatrix(osg::Matrix::identity()); 
 	mModelTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
 	mModelTrans->postMult(osg::Matrix::translate(2.0f, 0.0f, 0.0f));
 
-
 	//transform to scene transformation from configuration file
-	mSceneTrans->postMult(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
+	mSceneTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
 
 	//update the frame stamp in the viewer to sync all
 	//time based events in osg
@@ -317,7 +336,7 @@ void myPostSyncPreDrawFun()
 	mFrameStamp->setSimulationTime(curr_time.getVal());
 	mViewer->setFrameStamp(mFrameStamp.get());
 	mViewer->advance(curr_time.getVal()); //update
-	mViewer->setCameraManipulator(nodeTracker.get());//cookbook
+	//mViewer->setCameraManipulator(nodeTracker.get());//cookbook
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -342,7 +361,9 @@ void myDrawFun()
 void myEncodeFun()
 {
 	sgct::SharedData::instance()->writeDouble(&curr_time);
-	sgct::SharedData::instance()->writeDouble(&dist);
+	sgct::SharedData::instance()->writeDouble(&forward_speed);
+	sgct::SharedData::instance()->writeDouble(&rotation_speed_turn);
+	sgct::SharedData::instance()->writeDouble(&rotation_speed_roll);
 	sgct::SharedData::instance()->writeBool(&wireframe);
 	sgct::SharedData::instance()->writeBool(&info);
 	sgct::SharedData::instance()->writeBool(&stats);
@@ -353,7 +374,9 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	sgct::SharedData::instance()->readDouble(&curr_time);
-	sgct::SharedData::instance()->readDouble(&dist);
+	sgct::SharedData::instance()->readDouble(&forward_speed);
+	sgct::SharedData::instance()->readDouble(&rotation_speed_turn);
+	sgct::SharedData::instance()->readDouble(&rotation_speed_roll);
 	sgct::SharedData::instance()->readBool(&wireframe);
 	sgct::SharedData::instance()->readBool(&info);
 	sgct::SharedData::instance()->readBool(&stats);
@@ -411,6 +434,12 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_DOWN:
 			arrowButtons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+			break;
+		case SGCT_KEY_RIGHT:
+			arrowButtons[RIGHT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+			break;
+		case SGCT_KEY_LEFT:
+			arrowButtons[LEFT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 		}
 	}

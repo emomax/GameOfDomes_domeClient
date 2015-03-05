@@ -29,7 +29,10 @@ osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mNavTrans;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform> mPlayerTrans;
-osg::ref_ptr<osg::MatrixTransform> mModelTrans;
+osg::ref_ptr<osg::MatrixTransform> mModel1Trans;
+osg::ref_ptr<osg::MatrixTransform> mModel2Trans;
+osg::Vec3d forward_dir;
+osg::Vec3d player_pos;
 osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster
 
 //From cookbook for camera to track model
@@ -53,7 +56,7 @@ void setupLightSource();
 sgct::SharedDouble curr_time(0.0);
 sgct::SharedDouble forward_speed(0.0);
 sgct::SharedDouble rotation_x(0.0);
-sgct::SharedDouble rotation_y(0.0);
+sgct::SharedDouble rotation_y(1.57);
 sgct::SharedBool wireframe(false);
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
@@ -62,8 +65,9 @@ sgct::SharedBool light(true);
 
 //other var
 bool Buttons[6];
-enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN };
-const double navigation_speed = 1.0;
+enum directions { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
+double navigation_speed = 0.0;
+double hej = 0.0;
 const double turn_speed = 1.0;
 
 //skyboxclass  *********************************************************
@@ -222,11 +226,13 @@ void myInitOGLFun()
 	//skybox main ***********************************************
 
 	osg::ref_ptr<osg::Node>            mModel;
-	
+
 	mNavTrans = new osg::MatrixTransform();
 	mSceneTrans = new osg::MatrixTransform();
 	mPlayerTrans = new osg::MatrixTransform();
-	mModelTrans = new osg::MatrixTransform();
+	mModel1Trans = new osg::MatrixTransform();
+	mModel2Trans = new osg::MatrixTransform();
+
 
 	mPlayerTrans->setMatrix(osg::Matrix::identity());
 
@@ -234,11 +240,12 @@ void myInitOGLFun()
 	//add skybox to the scene graph
 	mRootNode->addChild(mPlayerTrans.get());
 	mRootNode->addChild(mNavTrans.get());
-	
+
 	mNavTrans->addChild(mSceneTrans.get());
-	mSceneTrans->addChild(mModelTrans.get());
+	mSceneTrans->addChild(mModel1Trans.get());
+	mSceneTrans->addChild(mModel2Trans.get());
 	mSceneTrans->addChild(skybox.get());
-	
+
 	sgct::MessageHandler::instance()->print("Loading model 'airplane.ive'...\n");
 	mModel = osgDB::readNodeFile("airplane.ive");
 
@@ -248,7 +255,8 @@ void myInitOGLFun()
 	{
 		sgct::MessageHandler::instance()->print("Model loaded successfully!\n");
 		mPlayerTrans->addChild(mModel.get());
-		mModelTrans->addChild(mModel.get());
+		mModel1Trans->addChild(mModel.get());
+		mModel2Trans->addChild(mModel.get());
 
 		//get the bounding box
 		osg::ComputeBoundsVisitor cbv;
@@ -259,11 +267,11 @@ void myInitOGLFun()
 		tmpVec = bb.center();
 
 		//scale to fit model and translate model center to origin
-		
+
 		mPlayerTrans->postMult(osg::Matrix::rotate(glm::radians(-90.0f), 1.0, 0.0, 0.0));
 		mPlayerTrans->postMult(osg::Matrix::rotate(glm::radians(180.0f), 0.0, 1.0, 0.0));
-		mPlayerTrans->postMult(osg::Matrix::translate(0.0, -5.0, 0.0));
-		mPlayerTrans->postMult(osg::Matrix::scale(1.0f / bb.radius(), 1.0f / bb.radius(), 1.0f / bb.radius()));
+		mPlayerTrans->postMult(osg::Matrix::translate(0.0, -0.5, 0.0));
+		mPlayerTrans->preMult(osg::Matrix::scale(1.0f / bb.radius(), 1.0f / bb.radius(), 1.0f / bb.radius()));
 
 		sgct::MessageHandler::instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2]);
 		sgct::MessageHandler::instance()->print("Model bounding sphere radius:\t%f\n", bb.radius());
@@ -285,17 +293,23 @@ void myPreSyncFun()
 		curr_time.setVal(sgct::Engine::getTime());
 
 		if (Buttons[FORWARD])
-			forward_speed.setVal(forward_speed.getVal() + (navigation_speed * gEngine->getDt()));
+			navigation_speed = 0.05;
 		if (Buttons[BACKWARD])
-			forward_speed.setVal(forward_speed.getVal() - (navigation_speed * gEngine->getDt()));
+			navigation_speed = -0.05;
 		if (Buttons[RIGHT])
+		if (rotation_x.getVal() > 0.0)
 			rotation_x.setVal(rotation_x.getVal() - (turn_speed * gEngine->getDt()));
+		else
+			rotation_x.setVal(6.28);
 		if (Buttons[LEFT])
+		if (rotation_x.getVal() < 6.28)
 			rotation_x.setVal(rotation_x.getVal() + (turn_speed * gEngine->getDt()));
-		if (Buttons[UP])
-			rotation_y.setVal(rotation_y.getVal() - (turn_speed * gEngine->getDt()));
-		if (Buttons[DOWN])
+		else
+			rotation_x.setVal(0.0);
+		if (Buttons[UP] && rotation_y.getVal() < 3.14)
 			rotation_y.setVal(rotation_y.getVal() + (turn_speed * gEngine->getDt()));
+		if (Buttons[DOWN] && rotation_y.getVal() > 0.0)
+			rotation_y.setVal(rotation_y.getVal() - (turn_speed * gEngine->getDt()));
 	}
 }
 
@@ -315,22 +329,33 @@ void myPostSyncPreDrawFun()
 		mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
 	mNavTrans->setMatrix(osg::Matrix::identity());
-	
+
 	//rotate osg coordinate system to match sgct
-	mNavTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
-		1.0f, 0.0f, 0.0f));
+	mNavTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f), 1.0f, 0.0f, 0.0f));
+
+	hej = hej + 0.01;
+	forward_dir = osg::Vec3d(-sin(rotation_x.getVal())*sin(rotation_y.getVal()), -cos(rotation_y.getVal()), -cos(rotation_x.getVal())*sin(rotation_y.getVal()));
+	player_pos = player_pos + forward_dir*navigation_speed;
 
 	//mNavTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
-	mNavTrans->postMult(osg::Matrix::rotate(rotation_x.getVal(), 0.0, 0.0, 1.0));
-	mNavTrans->postMult(osg::Matrix::rotate(rotation_y.getVal(), 0.0, 1.0, 0.0));
-	mNavTrans->postMult(osg::Matrix::translate(0.0, forward_speed.getVal(), 0.0));
+	mNavTrans->postMult(osg::Matrix::rotate(rotation_x.getVal(), 0.0, 1.0, 0.0));
+	mNavTrans->postMult(osg::Matrix::rotate(rotation_y.getVal(), cos(rotation_x.getVal()), 0.0, -sin(rotation_x.getVal())));
+	mNavTrans->postMult(osg::Matrix::translate(player_pos));
 	mNavTrans->setMatrix(mNavTrans->getInverseMatrix());
-	
-	//std::cout << rotation_speed_turn.getVal() << forward_speed.getVal() << std::endl;
 
-	mModelTrans->setMatrix(osg::Matrix::identity()); 
-	mModelTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
-	mModelTrans->postMult(osg::Matrix::translate(2.0f, 0.0f, 0.0f));
+
+	std::cout << forward_dir.x() << " " << forward_dir.y() << " " << forward_dir.z() << std::endl;
+	std::cout << "rot_x = " << rotation_x.getVal() << "rot_y = " << rotation_y.getVal() << std::endl;
+
+	mModel1Trans->setMatrix(osg::Matrix::identity());
+	mModel1Trans->preMult(osg::Matrix::translate(0.0f, 0.0f, 10.0f));
+
+	mModel2Trans->setMatrix(osg::Matrix::identity());
+	mModel2Trans->preMult(osg::Matrix::translate(0.0f, 0.0f, -10.0f));
+	mModel2Trans->preMult(osg::Matrix::rotate(3.14, 0.0f, 1.0f, 0.0f));
+
+	mModel1Trans->preMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
+	mModel2Trans->preMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
@@ -434,11 +459,11 @@ void keyCallback(int key, int action)
 				takeScreenshot.setVal(true);
 			break;
 
-		case 'W':
+		case 'Q':
 			Buttons[FORWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 
-		case 'S':
+		case 'E':
 			Buttons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 		case 'D':
@@ -447,10 +472,10 @@ void keyCallback(int key, int action)
 		case 'A':
 			Buttons[LEFT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
-		case 'Q':
+		case 'W':
 			Buttons[UP] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
-		case 'E':
+		case 'S':
 			Buttons[DOWN] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 		}

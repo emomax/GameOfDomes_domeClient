@@ -209,9 +209,10 @@ void myPreSyncFun()
 			rotation_y.setVal(rotation_y.getVal() + (turn_speed * gEngine->getDt()));
 		if (Buttons[DOWN] && rotation_y.getVal() > 0.0)
 			rotation_y.setVal(rotation_y.getVal() - (turn_speed * gEngine->getDt()));
+		//add missiles in a vector
 		if (Buttons[SHOOT])
 		{
-			missiles.push_back(Projectile((std::string)("ettskott"), osg::Vec3f(0.0, 0.0, 10.0), (std::string)("models/airplane.ive"), mSceneTrans, 1.0f, -0.3f));
+			missiles.push_back(Projectile((std::string)("ettskott"), player_pos- osg::Vec3f(0.0f,0.0f,0.0f), -forward_dir, (std::string)("models/airplane.ive"), mSceneTrans, 1.0f, -0.3f));
 			Buttons[SHOOT] = false;
 			
 			for (int i = 1; i < missiles.size(); i++)
@@ -256,16 +257,25 @@ void myPostSyncPreDrawFun()
 	//transform to scene transformation from configuration file
 	mSceneTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
 
-	if (missiles.size() > 10)
-	{
-		missiles[missiles.size() - 1].removeChildModel(missiles[missiles.size()-1].getModel());
-		missiles.pop_back();
-	}
+	
+
+	//move or remove missiles
 	for (int i = 0; i < missiles.size(); i++)
 	{
-		missiles[i].translate(missiles[i].getDir()*missiles[i].getVel());
+		missiles[i].setLifeTime(missiles[i].getLifeTime() - gEngine->getDt());
+		if (missiles[i].getLifeTime() < 0.0f)
+		{
+			missiles[i].removeChildModel(missiles[i].getModel());
+
+			Projectile temp = missiles[missiles.size() - 1];
+			missiles[missiles.size() - 1] = missiles[i];
+			missiles[i] = temp;
+
+			missiles.pop_back();
+		}
+		else
+			missiles[i].translate(missiles[i].getDir()*missiles[i].getVel());
 	}
-	//missiles.clear();
 
 	//update the frame stamp in the viewer to sync all
 	//time based events in osg

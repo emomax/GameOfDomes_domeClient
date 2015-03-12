@@ -65,6 +65,7 @@ public class GameLobby : MonoBehaviour {
 
 		//Main menu button
 		if (GUI.Button (new Rect (1150-buttonWidth/2, firstButtonY + buttonVerticalSpacing*2, buttonWidth, buttonHeight), "Main Menu")) {
+			sfsScript.logoutUser();
 			Application.LoadLevel("MainMenu");
 		}
 

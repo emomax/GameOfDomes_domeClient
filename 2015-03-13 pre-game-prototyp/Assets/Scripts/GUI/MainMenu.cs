@@ -20,8 +20,6 @@ public class MainMenu : MonoBehaviour {
 	float firstButtonY = Screen.height/2 - 140;
 	float verticalSpacing = 75;
 
-	string ipInput = "85.228.182.184";
-	
 	// Use this for initialization
 	void Start () {
 
@@ -42,12 +40,8 @@ public class MainMenu : MonoBehaviour {
 		//menu window background
 		GUI.Box(new Rect( (Screen.width/2) - mainWindowWidth/2, (Screen.height/2) - mainWindowHeight/2, mainWindowWidth, mainWindowHeight), "Main Menu");
 
-		//set ip to which to connect
-		ipInput = GUI.TextField(new Rect(0, 0, 200, 20), ipInput, 25);
-
 		if (GUI.Button (new Rect (Screen.width/2 - buttonWidth/2, firstButtonY, buttonWidth, buttonHeight), "Play")) {
-
-			sfsScript.connectToServer (ipInput);
+			//sfsScript.connectToServer (ipInput);
 			showNameSelect = true;
 		}
 		
@@ -58,7 +52,7 @@ public class MainMenu : MonoBehaviour {
 		}
 
 		if (GUI.Button (new Rect (Screen.width/2 - buttonWidth/2, firstButtonY + verticalSpacing*3, buttonWidth, buttonHeight), "Exit Game")) {
-			Application.Quit();
+			sfsScript.exitGame(); 
 		}
 
 		//pop up a text field where in game name can be chosen

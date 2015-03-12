@@ -14,8 +14,8 @@ public class SFSHandler : MonoBehaviour {
 	//smartfox server
 	//public string ServerIP = "127.0.0.1";
 	//string ServerIP = "85.228.182.184";
-	int ServerPort = 9933;
-	//string ZoneName = "BasicExamples";
+	//int ServerPort = 9933;
+	string ZoneName = "BasicExamples";
 	public string UserName = "";
 	//string RoomName = "";
 	RoomSettings roomSettings;
@@ -24,6 +24,7 @@ public class SFSHandler : MonoBehaviour {
 	private string createdRoomName = "";
 
 	bool connectionFail = false;
+	bool loginFail = false;
 
 	// Use this for initialization
 	void Start () {
@@ -38,18 +39,18 @@ public class SFSHandler : MonoBehaviour {
 		sfs.ThreadSafeMode = true;
 		
 		//add event listeners
-
-		//sfs.AddEventListener (SFSEvent.CONFIG_LOAD_SUCCESS, OnConfigLoadSuccessHandler);
+		sfs.AddEventListener (SFSEvent.CONFIG_LOAD_SUCCESS, OnConfigLoadSuccessHandler);
 		sfs.AddEventListener (SFSEvent.CONNECTION, OnConnection);
 		sfs.AddEventListener (SFSEvent.LOGIN, OnLogin);
+		sfs.AddEventListener (SFSEvent.LOGIN_ERROR, OnLoginError);
 		sfs.AddEventListener (SFSEvent.ROOM_ADD, OnRoomCreated);
 		sfs.AddEventListener (SFSEvent.ROOM_CREATION_ERROR, OnRoomCreationError);
 		sfs.AddEventListener (SFSEvent.ROOM_JOIN, OnJoinRoom);
 		sfs.AddEventListener (SFSEvent.ROOM_JOIN_ERROR, OnJoinRoomError);
 		sfs.AddEventListener (SFSEvent.USER_EXIT_ROOM, OnUserExitRoom);
 
-		//load config file
-		//sfs.LoadConfig(Application.dataPath + "/Scripts/Network/sfs-config.xml", false);
+		//load config file on startup, and connect on success
+		sfs.LoadConfig("sfs-config.xml", true);
 	}
 
 	// Update is called once per frame
@@ -57,13 +58,13 @@ public class SFSHandler : MonoBehaviour {
 		sfs.ProcessEvents();
 	}
 
+	//connect to server if config file successfully loads
 	private void OnConfigLoadSuccessHandler(BaseEvent e) {
 		Debug.Log("Config file loaded");
+		//sfs.Connect(sfs.Config.Host, sfs.Config.Port);
 	}
 
 	private void OnConnection(BaseEvent e) {
-
-		Debug.Log("trying to connect");
 
 		bool success = (bool)e.Params["success"];
 		if (success) {
@@ -73,12 +74,15 @@ public class SFSHandler : MonoBehaviour {
 			connectionFail = true;
 		}
 	}
-
-
-
+	
 	private void OnLogin(BaseEvent e) {
 		Debug.Log("Logged In: " + e.Params["user"]);
 		Application.LoadLevel("GameLobby"); // if login successful, load lobby
+	}
+
+	private void OnLoginError(BaseEvent e) {
+		Debug.Log("Failed to login");
+		loginFail = true;
 	}
 	
 	private void OnRoomCreated(BaseEvent e) {
@@ -105,30 +109,25 @@ public class SFSHandler : MonoBehaviour {
 		Debug.Log("Left room: " + e.Params["room"]);
 		Application.LoadLevel("GameLobby"); //if successfully leaving room, load lobby scene
 	}
-
-	void OnApplicationQuit() {
-		if (sfs.IsConnected)
-			sfs.Disconnect();
-	}
-
+	
 	//connect to server
 	public void connectToServer(string _ip) {
-
-		//sfs.Connect (ServerIP, ServerPort); //hårdkodat
-		//sfs.Connect(sfs.Config.Host, sfs.Config.Port); //with config file
-		sfs.Connect(_ip, ServerPort); //with dialogue box
+		//sfs.Connect(_ip, ServerPort); //with dialogue box
 	}
 
 	//login function
 	public void loginOnServer(){
-		sfs.Send (new LoginRequest (UserName, "", sfs.Config.Zone));
+		sfs.Send (new LoginRequest (UserName, "", ZoneName));
+	}
+
+	public void logoutUser() {
+		sfs.Send( new LogoutRequest() );
 	}
 
 	// Request to create a new room
 	public void createRoom(string roomName) {
 
 		createdRoomName = roomName; // keep this in order to access the room later
-
 		roomSettings = new RoomSettings(roomName);
 		sfs.Send (new CreateRoomRequest (roomSettings, false, null));
 	}
@@ -143,9 +142,17 @@ public class SFSHandler : MonoBehaviour {
 		sfs.Send (new LeaveRoomRequest ());
 	}
 
+	public void exitGame() {
+		sfs.Disconnect();
+		System.Diagnostics.Process.GetCurrentProcess ().Kill ();
+	}
+
 	void OnGUI() {
 		if(connectionFail)
 			GUI.Box(new Rect( 0, 50 , 200, 20), "Failed to connect");
+
+		if(loginFail)
+			GUI.Box(new Rect( 0, 100 , 200, 20), "Failed to login");
 	}
 }
 

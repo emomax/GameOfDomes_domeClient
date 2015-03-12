@@ -1,7 +1,7 @@
 <SmartFoxConfig>
-    <ip>85.228.182.184</ip>
+    <ip>hej</ip>
     <port>9933</port>
-    <udpIp>85.228.182.184</udpIp>
+    <udpIp>hej</udpIp>
     <udpPort>9933</udpPort>
     <zone>BasicExamples</zone>
 </SmartFoxConfig>

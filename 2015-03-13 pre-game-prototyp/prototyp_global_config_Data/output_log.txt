@@ -14,7 +14,7 @@ Platform assembly: C:\Users\Tobias\Desktop\prototyp_03\prototyp_global_config_Da
 Loading C:\Users\Tobias\Desktop\prototyp_03\prototyp_global_config_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
 Platform assembly: C:\Users\Tobias\Desktop\prototyp_03\prototyp_global_config_Data\Managed\SmartFox2X.dll (this message is harmless)
 Loading C:\Users\Tobias\Desktop\prototyp_03\prototyp_global_config_Data\Managed\SmartFox2X.dll into Unity Child Domain
-- Completed reload, in  0.042 seconds
+- Completed reload, in  0.039 seconds
 desktop: 1680x1050 59Hz; virtual: 1680x1050 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.

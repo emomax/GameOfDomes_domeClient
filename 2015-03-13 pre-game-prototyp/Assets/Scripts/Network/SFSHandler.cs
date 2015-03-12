@@ -14,14 +14,16 @@ public class SFSHandler : MonoBehaviour {
 	//smartfox server
 	//public string ServerIP = "127.0.0.1";
 	//string ServerIP = "85.228.182.184";
-	//int ServerPort = 9933;
+	int ServerPort = 9933;
 	//string ZoneName = "BasicExamples";
 	public string UserName = "";
-	string RoomName = "";
+	//string RoomName = "";
 	RoomSettings roomSettings;
 
 	//Client variables
 	private string createdRoomName = "";
+
+	bool connectionFail = false;
 
 	// Use this for initialization
 	void Start () {
@@ -47,7 +49,7 @@ public class SFSHandler : MonoBehaviour {
 		sfs.AddEventListener (SFSEvent.USER_EXIT_ROOM, OnUserExitRoom);
 
 		//load config file
-		sfs.LoadConfig(Application.dataPath + "/Scripts/Network/sfs-config.xml", false);
+		//sfs.LoadConfig(Application.dataPath + "/Scripts/Network/sfs-config.xml", false);
 	}
 
 	// Update is called once per frame
@@ -57,12 +59,22 @@ public class SFSHandler : MonoBehaviour {
 
 	private void OnConfigLoadSuccessHandler(BaseEvent e) {
 		Debug.Log("Config file loaded");
-		Debug.Log ("Ip is: " + sfs.Config.Host);
 	}
 
 	private void OnConnection(BaseEvent e) {
-		Debug.Log("Successfully Connected");
+
+		Debug.Log("trying to connect");
+
+		bool success = (bool)e.Params["success"];
+		if (success) {
+			Debug.Log("Successfully Connected");
+		} else {
+			Debug.Log("Failed to connect");
+			connectionFail = true;
+		}
 	}
+
+
 
 	private void OnLogin(BaseEvent e) {
 		Debug.Log("Logged In: " + e.Params["user"]);
@@ -100,12 +112,11 @@ public class SFSHandler : MonoBehaviour {
 	}
 
 	//connect to server
-	public void connectToServer() {
-		Debug.Log ("connecting to " + sfs.Config.Host + " : " + sfs.Config.Port);
-//		sfs.Connect (ServerIP, ServerPort);
+	public void connectToServer(string _ip) {
 
-		//Debug.Log ("Host is: " + sfs.Config.Host + "and port is" + sfs.Config.Port);
-		sfs.Connect(sfs.Config.Host, sfs.Config.Port); //with config file
+		//sfs.Connect (ServerIP, ServerPort); //hårdkodat
+		//sfs.Connect(sfs.Config.Host, sfs.Config.Port); //with config file
+		sfs.Connect(_ip, ServerPort); //with dialogue box
 	}
 
 	//login function
@@ -130,6 +141,11 @@ public class SFSHandler : MonoBehaviour {
 	//Request to leave current room
 	public void leaveRoom() {
 		sfs.Send (new LeaveRoomRequest ());
+	}
+
+	void OnGUI() {
+		if(connectionFail)
+			GUI.Box(new Rect( 0, 50 , 200, 20), "Failed to connect");
 	}
 }
 

@@ -19,6 +19,8 @@ public class MainMenu : MonoBehaviour {
 	float buttonHeight = 50;
 	float firstButtonY = Screen.height/2 - 140;
 	float verticalSpacing = 75;
+
+	string ipInput = "85.228.182.184";
 	
 	// Use this for initialization
 	void Start () {
@@ -40,9 +42,12 @@ public class MainMenu : MonoBehaviour {
 		//menu window background
 		GUI.Box(new Rect( (Screen.width/2) - mainWindowWidth/2, (Screen.height/2) - mainWindowHeight/2, mainWindowWidth, mainWindowHeight), "Main Menu");
 
+		//set ip to which to connect
+		ipInput = GUI.TextField(new Rect(0, 0, 200, 20), ipInput, 25);
+
 		if (GUI.Button (new Rect (Screen.width/2 - buttonWidth/2, firstButtonY, buttonWidth, buttonHeight), "Play")) {
 
-			sfsScript.connectToServer ();
+			sfsScript.connectToServer (ipInput);
 			showNameSelect = true;
 		}
 		

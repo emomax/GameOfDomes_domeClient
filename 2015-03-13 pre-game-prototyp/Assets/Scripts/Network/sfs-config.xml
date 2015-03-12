@@ -1,5 +1,5 @@
 <SmartFoxConfig>
-    <ip>127.0.0.1</ip>
+    <ip>85.228.182.184</ip>
     <port>9933</port>
     <udpIp>85.228.182.184</udpIp>
     <udpPort>9933</udpPort>

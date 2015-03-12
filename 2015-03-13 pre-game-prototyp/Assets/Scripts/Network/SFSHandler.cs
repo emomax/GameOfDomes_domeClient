@@ -13,12 +13,12 @@ public class SFSHandler : MonoBehaviour {
 
 	//smartfox server
 	//public string ServerIP = "127.0.0.1";
-	//public string ServerIP = "85.228.182.184";
-	//public int ServerPort = 9933;
-	public string ZoneName = "BasicExamples";
+	//string ServerIP = "85.228.182.184";
+	//int ServerPort = 9933;
+	//string ZoneName = "BasicExamples";
 	public string UserName = "";
-	public string RoomName = "";
-	public RoomSettings roomSettings;
+	string RoomName = "";
+	RoomSettings roomSettings;
 
 	//Client variables
 	private string createdRoomName = "";
@@ -37,7 +37,7 @@ public class SFSHandler : MonoBehaviour {
 		
 		//add event listeners
 
-		sfs.AddEventListener (SFSEvent.CONFIG_LOAD_SUCCESS, OnConfigLoadSuccessHandler);
+		//sfs.AddEventListener (SFSEvent.CONFIG_LOAD_SUCCESS, OnConfigLoadSuccessHandler);
 		sfs.AddEventListener (SFSEvent.CONNECTION, OnConnection);
 		sfs.AddEventListener (SFSEvent.LOGIN, OnLogin);
 		sfs.AddEventListener (SFSEvent.ROOM_ADD, OnRoomCreated);
@@ -56,7 +56,8 @@ public class SFSHandler : MonoBehaviour {
 	}
 
 	private void OnConfigLoadSuccessHandler(BaseEvent e) {
-		Debug.Log("Config file loaded");	
+		Debug.Log("Config file loaded");
+		Debug.Log ("Ip is: " + sfs.Config.Host);
 	}
 
 	private void OnConnection(BaseEvent e) {
@@ -100,13 +101,16 @@ public class SFSHandler : MonoBehaviour {
 
 	//connect to server
 	public void connectToServer() {
-		//sfs.Connect (ServerIP, ServerPort);
+		Debug.Log ("connecting to " + sfs.Config.Host + " : " + sfs.Config.Port);
+//		sfs.Connect (ServerIP, ServerPort);
+
+		//Debug.Log ("Host is: " + sfs.Config.Host + "and port is" + sfs.Config.Port);
 		sfs.Connect(sfs.Config.Host, sfs.Config.Port); //with config file
 	}
 
 	//login function
 	public void loginOnServer(){
-		sfs.Send (new LoginRequest (UserName, "", ZoneName));
+		sfs.Send (new LoginRequest (UserName, "", sfs.Config.Zone));
 	}
 
 	// Request to create a new room

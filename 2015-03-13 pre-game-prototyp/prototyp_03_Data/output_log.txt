@@ -20,5 +20,23 @@ desktop: 1680x1050 59Hz; virtual: 1680x1050 at 0,0
 <RI> Input initialized.
 Platform assembly: C:\Users\Tobias\Desktop\prototyp_03\prototyp_03_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: C:\Users\Tobias\Desktop\prototyp_03\prototyp_03_Data\Managed\System.dll (this message is harmless)
-Error loading config file: Could not find a part of the path "C:\Users\Tobias\Desktop\prototyp_03\prototyp_03_Data\Scripts\Network\sfs-config.xml".
-[SFS - ERROR] Failed to load config: Error loading config file: Could not find a part of the path "C:\Users\Tobias\Desktop\prototyp_03\prototyp_03_Data\Scripts\Network\sfs-config.xml".
+Successfully Connected
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+Logged In: [User: Tobias, Id: 2, isMe: True]
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+UnloadTime: 0.648337 ms
+Unloading 3 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
+
+Unloading 2 unused Assets to reduce memory usage. Loaded Objects now: 138.
+Total: 1.756890 ms (FindLiveObjects: 0.021650 ms CreateObjectMapping: 0.021357 ms MarkObjects: 0.355766 ms  DeleteObjects: 0.008191 ms)
+
+UnloadTime: 0.525457 ms
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
+
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 138.
+Total: 1.731144 ms (FindLiveObjects: 0.021650 ms CreateObjectMapping: 0.021065 ms MarkObjects: 0.391167 ms  DeleteObjects: 0.008191 ms)
+

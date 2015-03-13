@@ -6,77 +6,74 @@ public class PilotControlls : MonoBehaviour {
 	//client variables
 	private bool showInGameMenu = false;
 
-	//these variables are handled by server and should not be acceced by client
-	private float velocity = 0;
-	private float maxVelocity = 5;
-	private float accellerationAmount = .1f;
-	private Vector3 currentPosition;
-	float rotationSensetivity = 30;
+	//input variables
+	private int verticalInput;
+	private int horizontalInput;
+	private int thrustInput;
 
+	//server objects
+	SFSHandler sfsScript; //SFS-script
+	GameObject serverObject;
+	
 	// Use this for initialization
 	void Start () {
-	
-		currentPosition = transform.position;
+
+		//access the server script
+		sfsScript = GetComponent<SFSHandler> ();
+		serverObject = GameObject.Find("Server");
+		sfsScript = (SFSHandler) serverObject.GetComponent(typeof(SFSHandler));
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-		//update rotation
-		rotationExtension (Input.GetButton ("Up"), Input.GetButton ("Down"), Input.GetButton ("Left"), Input.GetButton ("Right"));
+		//horizontal input
+		if (Input.GetButton ("Right"))
+			horizontalInput = 1;
+		else if (Input.GetButton ("Left"))
+			horizontalInput = -1;
+		else
+			horizontalInput = 0;
 
-		//update speed
-		translateExtension (Input.GetButton ("Speed"), Input.GetButton ("Slow"));
+		//vertical input
+		if (Input.GetButton ("Up"))
+			verticalInput = 1;
+		else if (Input.GetButton ("Down"))
+			verticalInput = -1;
+		else
+			verticalInput = 0;
 
-		//in game menu
+		//thrust input
+		if (Input.GetButton ("Speed"))
+			thrustInput = 1;
+		else if (Input.GetButton ("Slow"))
+			thrustInput = -1;
+		else
+			thrustInput = 0;
+
+		//send input data to server
+		if(!(horizontalInput == 0 && verticalInput == 0 && thrustInput == 0))
+			sfsScript.sendDataToServer (horizontalInput, verticalInput, thrustInput);
+		
+		//toggle in game menu
 		if (Input.GetButtonDown ("Cancel") && !showInGameMenu) {
 			showInGameMenu = true;
 		} else if (Input.GetButtonDown ("Cancel") && showInGameMenu) {
 			showInGameMenu = false;
 		}
-
-		//temporary controlls not taking server data into consideration
-		float horizontalRotation = Input.GetAxis ("Horizontal") * rotationSensetivity;
-		float verticalRotation = Input.GetAxis ("Vertical") * rotationSensetivity;
-		transform.Rotate (verticalRotation * Time.deltaTime, horizontalRotation * Time.deltaTime, 0);
-	}
-
-	//rotate the ship. gets input and returns rotation (this function will be replaced by a server extension)
-	void rotationExtension(bool _up, bool _down, bool _left, bool _right) {
-
-	}
-
-	//translate the ship. gets input and returns position (this function will be replaced by a server extension)
-	void translateExtension(bool _speed, bool _slow) {
-		if (_speed) {
-			velocity += accellerationAmount;
-			if (velocity > maxVelocity)
-				velocity = maxVelocity;
-		}
-		if (_slow) {
-			velocity -= accellerationAmount;	
-			if (velocity < -maxVelocity)
-				velocity = -maxVelocity;
-		}
-
-		Vector3 newPosition = currentPosition += gameObject.transform.forward * velocity * Time.deltaTime;
-
-		//update the spaceship's position with the new position
-		updatePosition (newPosition.x, newPosition.y, newPosition.z);
-	}
-
-	//use new data to update rotation
-	void updateRotation(float _xRot, float _yRot, float _zRot) {
-		Vector3 _forward = new Vector3 (_xRot, _yRot, _zRot);
-		Quaternion _newRotation = Quaternion.LookRotation(_forward, Vector3.up);
-		transform.rotation = _newRotation;
 	}
 
 	//use new data to update position
-	void updatePosition(float _xPos, float _yPos, float _zPos) {
-		gameObject.transform.position = new Vector3 (_xPos, _yPos, _zPos);
+	public void updatePosition(double _xPos, double _yPos, double _zPos) {
+		transform.position = new Vector3 ((float)_xPos, (float)_yPos, (float)_zPos);
 	}
 
+	//use new data to update rotation
+	public void updateRotation(double _yRot, double _xRot, double _zRot) {
+		transform.localEulerAngles = new Vector3((float)_xRot, (float)_yRot, (float)_zRot);
+	}
+
+	//gui used for in game menu
 	void OnGUI() {
 
 		//In game menu window properties
@@ -97,7 +94,8 @@ public class PilotControlls : MonoBehaviour {
 			if (GUI.Button (new Rect (Screen.width/2-buttonWidth/2, firstButtonY, buttonWidth, buttonHeight), "Settings")) {
 			}
 			if (GUI.Button (new Rect (Screen.width/2-buttonWidth/2, firstButtonY+verticalButtonSpacing, buttonWidth, buttonHeight), "Abandon Game")) {
-				Application.LoadLevel("GameLobby");
+
+				sfsScript.leaveRoom();
 			}
 		}
 	}

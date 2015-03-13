@@ -51,20 +51,20 @@ public class GameLobby : MonoBehaviour {
 		GUI.Box(new Rect( (Screen.width/2) - mainWindowWidth/2, (Screen.height/2) - mainWindowHeight/2, mainWindowWidth, mainWindowHeight), "Lobby");
 
 		//search game text field
-		searchInput = GUI.TextField(new Rect(1150-textFieldWidth/2, 10, textFieldWidth, textFieldHeight), searchInput, 25);
+		searchInput = GUI.TextField(new Rect(Screen.width/2, 10, textFieldWidth, textFieldHeight), searchInput, 25);
 
 		//join game button
-		if (GUI.Button (new Rect (1150-buttonWidth/2, firstButtonY, buttonWidth, buttonHeight), "Join Game")) {
+		if (GUI.Button (new Rect (Screen.width/2, firstButtonY, buttonWidth, buttonHeight), "Join Game")) {
 			sfsScript.joinRoom(searchInput);
 		}
 
 		//create game button
-		if (GUI.Button (new Rect (1150-buttonWidth/2, firstButtonY + buttonVerticalSpacing, buttonWidth, buttonHeight), "Create Game")) {
+		if (GUI.Button (new Rect (Screen.width/2, firstButtonY + buttonVerticalSpacing, buttonWidth, buttonHeight), "Create Game")) {
 			showGameCreation = true;
 		}
 
 		//Main menu button
-		if (GUI.Button (new Rect (1150-buttonWidth/2, firstButtonY + buttonVerticalSpacing*2, buttonWidth, buttonHeight), "Main Menu")) {
+		if (GUI.Button (new Rect (Screen.width/2, firstButtonY + buttonVerticalSpacing*2, buttonWidth, buttonHeight), "Main Menu")) {
 			sfsScript.logoutUser();
 			Application.LoadLevel("MainMenu");
 		}

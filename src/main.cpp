@@ -7,6 +7,7 @@
 
 #include "classroom\SkyBox.h"
 #include "classroom\Projectile.h"
+#include "classroom\EnemyShip.h"
 
 sgct::Engine * gEngine;
 
@@ -14,19 +15,20 @@ sgct::Engine * gEngine;
 //more controlled termination
 //and prevents segfault on Linux
 osgViewer::Viewer * mViewer;
+
+//Scene transforms. mRootNode is used by our osgViewer
 osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mNavTrans;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform> mPlayerTrans;
 
 
-
+//Position and direction variables for the player
 osg::Vec3d forward_dir;
 osg::Vec3d player_pos;
+
 osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster
 
-//From cookbook for camera to track model
-//osg::ref_ptr<osgGA::NodeTrackerManipulator> nodeTracker = new osgGA::NodeTrackerManipulator;
 
 //callbacks
 void myInitOGLFun();
@@ -43,26 +45,29 @@ void initOSG();
 void setupLightSource();
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
-sgct::SharedDouble forward_speed(0.0);
-sgct::SharedDouble rotation_x(0.0);
-sgct::SharedDouble rotation_y(1.57);
-sgct::SharedBool wireframe(false);
+sgct::SharedDouble curr_time(0.0);		//Current game time
+sgct::SharedDouble forward_speed(0.0);	//Current player speed
+sgct::SharedDouble theta(0.0);			//Spherical coordinates
+sgct::SharedDouble phi(PI/2);
+sgct::SharedBool wireframe(false);		//OsgExample settings
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
 sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool light(true);
 
-//other var
+//Temporary variables that will be replaced after merge with SFS
 bool Buttons[7];
 enum directions { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN, SHOOT };
 double navigation_speed = 0.0;
 const double turn_speed = 3.0;
+
+//vector containing all projectiles in the scene
 std::vector<Projectile> missiles;
 
 
 int main(int argc, char* argv[])
 {
+	//SGCT setup
 	gEngine = new sgct::Engine(argc, argv);
 
 	gEngine->setInitOGLFunction(myInitOGLFun);
@@ -72,14 +77,11 @@ int main(int argc, char* argv[])
 	gEngine->setCleanUpFunction(myCleanUpFun);
 	gEngine->setKeyboardCallbackFunction(keyCallback);
 
-	//From cookbook
-	//nodeTracker->setHomePosition(osg::Vec3(0.0, 0.5, 0.0), osg::Vec3(0.0, 0.0, 0.0), osg::Z_AXIS);
-	//nodeTracker->setTrackerMode(osgGA::NodeTrackerManipulator::NODE_CENTER_AND_ROTATION);
-	//nodeTracker->setRotationMode(osgGA::NodeTrackerManipulator::TRACKBALL);
 
 	//fix incompability with warping and OSG
 	sgct_core::ClusterManager::instance()->setMeshImplementation(sgct_core::ClusterManager::DISPLAY_LIST);
 
+	//Initialize buttoninput
 	for (int i = 0; i<7; i++)
 		Buttons[i] = false;
 
@@ -89,6 +91,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+	//Initialize cluster-shared variables
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
@@ -107,13 +110,17 @@ int main(int argc, char* argv[])
 */
 void myInitOGLFun()
 {
+	//Setup OSG scene graph and viewer.
 	initOSG();
 
+	//Generate random seed
+	srand(time(NULL));
+
+	//Skybox code needs to be cleaned up
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->addDrawable(new osg::ShapeDrawable(
 		new osg::Sphere(osg::Vec3(), 90)));  //scene->getBound().radius())));
 	geode->setCullingActive(false);
-
 	osg::ref_ptr<SkyBox> skybox = new SkyBox;
 	skybox->getOrCreateStateSet()->setTextureAttributeAndModes(0, new osg::TexGen);
 	skybox->setEnvironmentMap(0,
@@ -122,65 +129,38 @@ void myInitOGLFun()
 		osgDB::readImageFile("textures/tobpi_maxjo_skyboxtest1_front5.png"), osgDB::readImageFile("textures/tobpi_maxjo_skyboxtest1_back6.png"));
 	skybox->addChild(geode.get());
 	
-	osg::ref_ptr<osg::Group> root = new osg::Group;
-
-	osg::ref_ptr<osg::Node> mModel;
-	
+	//Initialize scene graph transforms. mRootNode is initialized in the InitOSG() function
 	mNavTrans = new osg::MatrixTransform();
 	mSceneTrans = new osg::MatrixTransform();
 	mPlayerTrans = new osg::MatrixTransform();
-
 	mPlayerTrans->setMatrix(osg::Matrix::identity());
 
-	//add skybox to the scene graph
+	//Setup the scene graph
 	mRootNode->addChild(mPlayerTrans.get());
 	mRootNode->addChild(mNavTrans.get());
-	
 	mNavTrans->addChild(mSceneTrans.get());
 	mSceneTrans->addChild(skybox.get());
-	
-	srand(time(NULL));
+
+	//Add player model
+	GameObject player = GameObject((std::string)("ettplan"), osg::Vec3f(0.0, -0.5, 0.0), (std::string)("models/airplane.ive"), mPlayerTrans);
+
+	//Låt stå för referens
+	mPlayerTrans->postMult(osg::Matrix::rotate(-PI / 2.0, 1.0, 0.0, 0.0));
+	mPlayerTrans->postMult(osg::Matrix::rotate(PI, 0.0, 1.0, 0.0));
+	//mPlayerTrans->postMult(osg::Matrix::translate(0.0, -0.5, 0.0));
+	//mPlayerTrans->preMult(osg::Matrix::scale(1.0f / bb.radius(), 1.0f / bb.radius(), 1.0f / bb.radius()));
+
+	//Fill scene with 10 asteroids. Later this should be moved to specific scene functions for each level.
 	for (int i = 0; i < 10; i++)
 	{
 		float rand1 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 		float rand2 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 		float rand3 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-		std::cout << "asteroid nummer: " << i << "\n";
-		GameObject hej = GameObject((std::string)("ettplan"), osg::Vec3f(20 - rand1 * 200, rand2 * 10, rand3 * 80), (std::string)("models/airplane.ive"), mSceneTrans);
+		std::cout << "Succesfully loaded asteroid: " << i << "\n";
+		GameObject tempAsteroid = GameObject((std::string)("en asteroid"), osg::Vec3f(20 - rand1 * 200, rand2 * 10, rand3 * 80), (std::string)("models/asteroid.ive"), mSceneTrans);
 	}
 
-	sgct::MessageHandler::instance()->print("Loading model 'airplane.ive'...\n");
-	mModel = osgDB::readNodeFile("models/airplane.ive");
-
-	if (mModel.valid())
-	{
-		sgct::MessageHandler::instance()->print("Model loaded successfully!\n");
-		mPlayerTrans->addChild(mModel.get());
-
-		//get the bounding box
-		osg::ComputeBoundsVisitor cbv;
-		osg::BoundingBox &bb(cbv.getBoundingBox());
-		mModel->accept(cbv);
-
-		osg::Vec3f tmpVec;
-		tmpVec = bb.center();
-
-		//scale to fit model and translate model center to origin
-		mPlayerTrans->postMult(osg::Matrix::rotate(-PI/2.0, 1.0, 0.0, 0.0));
-		mPlayerTrans->postMult(osg::Matrix::rotate(PI, 0.0, 1.0, 0.0));
-		mPlayerTrans->postMult(osg::Matrix::translate(0.0, -0.5, 0.0));
-		mPlayerTrans->preMult(osg::Matrix::scale(1.0f / bb.radius(), 1.0f / bb.radius(), 1.0f / bb.radius()));
-
-		sgct::MessageHandler::instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2]);
-		sgct::MessageHandler::instance()->print("Model bounding sphere radius:\t%f\n", bb.radius());
-
-		//disable face culling
-		mModel->getOrCreateStateSet()->setMode(GL_CULL_FACE,
-			osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
-	}
-	else
-		sgct::MessageHandler::instance()->print("Failed to read model!\n");
-
+	//Setup the lightsource
 	setupLightSource();
 }
 
@@ -188,85 +168,93 @@ void myPreSyncFun()
 {
 	if (gEngine->isMaster())
 	{
+		//Update current time
 		curr_time.setVal(sgct::Engine::getTime());
 
-		//Handle key-input (not the real key input but what happens when a specific key has been pressed)
+		//Handle key-input events
 		if (Buttons[FORWARD] && navigation_speed < 0.8)
 			navigation_speed += 0.01;
 		if (Buttons[BACKWARD] && navigation_speed > -0.5)
 			navigation_speed = -0.01;
 		if (Buttons[RIGHT])
-			if (rotation_x.getVal() > 0.0)
-				rotation_x.setVal(rotation_x.getVal() - (turn_speed * gEngine->getDt()));
+			if (theta.getVal() > 0.0)
+				theta.setVal(theta.getVal() - (turn_speed * gEngine->getDt()));
 			else
-				rotation_x.setVal(2*PI);
+				theta.setVal(2*PI);
 		if (Buttons[LEFT])
-			if (rotation_x.getVal() < 2*PI)
-				rotation_x.setVal(rotation_x.getVal() + (turn_speed * gEngine->getDt()));
+			if (theta.getVal() < 2*PI)
+				theta.setVal(theta.getVal() + (turn_speed * gEngine->getDt()));
 			else
-				rotation_x.setVal(0.0);
-		if (Buttons[UP] && rotation_y.getVal() < PI)
-			rotation_y.setVal(rotation_y.getVal() + (turn_speed * gEngine->getDt()));
-		if (Buttons[DOWN] && rotation_y.getVal() > 0.0)
-			rotation_y.setVal(rotation_y.getVal() - (turn_speed * gEngine->getDt()));
-		//add missiles in a vector
+				theta.setVal(0.0);
+		if (Buttons[UP] && phi.getVal() < PI)
+			phi.setVal(phi.getVal() + (turn_speed * gEngine->getDt()));
+		if (Buttons[DOWN] && phi.getVal() > 0.0)
+			phi.setVal(phi.getVal() - (turn_speed * gEngine->getDt()));
 		if (Buttons[SHOOT])
 		{
-			missiles.push_back(Projectile((std::string)("ettskott"), player_pos- osg::Vec3f(0.0f,0.0f,0.0f), -forward_dir, (std::string)("models/airplane.ive"), mSceneTrans, 1.0f, -0.3f));
-			Buttons[SHOOT] = false;
-			
+			//Add and then sort new projectiles in the missile vector.
+			missiles.push_back(Projectile((std::string)("ettskott"), player_pos, -forward_dir, (std::string)("models/skott_prototyp.ive"), mSceneTrans, 1.0f, -0.3f));
 			for (int i = 1; i < missiles.size(); i++)
 			{
 				Projectile temp = missiles[missiles.size() - i];
 				missiles[missiles.size() - i] = missiles[missiles.size()-i-1];
 				missiles[missiles.size()-i-1] = temp;
 			}
+			Buttons[SHOOT] = false;
 		}
 	}
 }
 
 void myPostSyncPreDrawFun()
 {
+	//Check OsgExample settings
 	gEngine->setWireframe(wireframe.getVal());
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
 
+	//Probably not very useful
 	if (takeScreenshot.getVal())
 	{
 		gEngine->takeScreenshot();
 		takeScreenshot.setVal(false);
 	}
 
+	//Enable or disable light with the L button
 	light.getVal() ? mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
+	//Reset navigation transform every frame
 	mNavTrans->setMatrix(osg::Matrix::identity());
 	
-	//rotate osg coordinate system to match sgct
+	//Rotate osg coordinate system to match sgct
 	mNavTrans->preMult(osg::Matrix::rotate(-PI/2, 1.0f, 0.0f, 0.0f));
 
-	forward_dir = osg::Vec3d(-sin(rotation_x.getVal())*sin(rotation_y.getVal()), -cos(rotation_y.getVal()), -cos(rotation_x.getVal())*sin(rotation_y.getVal()));
+	//Set direction and position of player. forward_dir is normalized.
+	forward_dir = osg::Vec3d(-sin(theta.getVal())*sin(phi.getVal()), -cos(phi.getVal()), -cos(theta.getVal())*sin(phi.getVal()));
 	player_pos = player_pos + forward_dir*navigation_speed;
 
-	//mNavTrans->postMult(osg::Matrix::scale(1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f));
-	mNavTrans->postMult(osg::Matrix::rotate(rotation_x.getVal(), 0.0, 1.0, 0.0));
-	mNavTrans->postMult(osg::Matrix::rotate(rotation_y.getVal(), cos(rotation_x.getVal()), 0.0, -sin(rotation_x.getVal()) ));
+	//Transform the scene. Inverse is used to account for the player perspective.
+	mNavTrans->postMult(osg::Matrix::rotate(theta.getVal(), 0.0, 1.0, 0.0));
+	mNavTrans->postMult(osg::Matrix::rotate(phi.getVal(), cos(theta.getVal()), 0.0, -sin(theta.getVal()) ));
 	mNavTrans->postMult(osg::Matrix::translate(player_pos));
 	mNavTrans->setMatrix(mNavTrans->getInverseMatrix());
 
-	//transform to scene transformation from configuration file
+	//Transform to scene transformation from configuration file
 	mSceneTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
 
 	
 
-	//move or remove missiles
+	//Move or remove missiles
 	for (int i = 0; i < missiles.size(); i++)
 	{
+		//Reduce lifetime of missile
 		missiles[i].setLifeTime(missiles[i].getLifeTime() - gEngine->getDt());
 		if (missiles[i].getLifeTime() < 0.0f)
 		{
+			//Remove from scene graph before deleting the object
 			missiles[i].removeChildModel(missiles[i].getModel());
 
+			//Place projectile last in vector so we can use pop_back() correctly
 			Projectile temp = missiles[missiles.size() - 1];
 			missiles[missiles.size() - 1] = missiles[i];
 			missiles[i] = temp;
@@ -310,8 +298,8 @@ void myEncodeFun()
 {
 	sgct::SharedData::instance()->writeDouble(&curr_time);
 	sgct::SharedData::instance()->writeDouble(&forward_speed);
-	sgct::SharedData::instance()->writeDouble(&rotation_x);
-	sgct::SharedData::instance()->writeDouble(&rotation_y);
+	sgct::SharedData::instance()->writeDouble(&theta);
+	sgct::SharedData::instance()->writeDouble(&phi);
 	sgct::SharedData::instance()->writeBool(&wireframe);
 	sgct::SharedData::instance()->writeBool(&info);
 	sgct::SharedData::instance()->writeBool(&stats);
@@ -323,8 +311,8 @@ void myDecodeFun()
 {
 	sgct::SharedData::instance()->readDouble(&curr_time);
 	sgct::SharedData::instance()->readDouble(&forward_speed);
-	sgct::SharedData::instance()->readDouble(&rotation_x);
-	sgct::SharedData::instance()->readDouble(&rotation_y);
+	sgct::SharedData::instance()->readDouble(&theta);
+	sgct::SharedData::instance()->readDouble(&phi);
 	sgct::SharedData::instance()->readBool(&wireframe);
 	sgct::SharedData::instance()->readBool(&info);
 	sgct::SharedData::instance()->readBool(&stats);
@@ -339,6 +327,7 @@ void myCleanUpFun()
 	mViewer = NULL;
 }
 
+//SGCT key callbacks that will be replaced after merge with SFS
 void keyCallback(int key, int action)
 {
 	if (gEngine->isMaster())

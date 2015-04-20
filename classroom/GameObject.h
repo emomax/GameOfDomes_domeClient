@@ -33,6 +33,8 @@ public:
 	void setModel(osg::ref_ptr<osg::Node> _m) { model = _m; }
 	void setModel(std::string _fileName);
 
+	GameObject operator=(GameObject _g);
+
 	virtual ~GameObject() {}
 
 private:

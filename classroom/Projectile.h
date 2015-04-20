@@ -29,8 +29,6 @@ public:
 
 	void setLifeTime(float _t) { lifeTime = _t; }
 
-	void translate(osg::Vec3f _t);
-
 	Projectile operator=(Projectile _p);
 
 	virtual ~Projectile() {}
@@ -38,6 +36,5 @@ public:
 private:
 	float damage;
 	float lifeTime;
-	osg::Vec3f pos;
 
 };

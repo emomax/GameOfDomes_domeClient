@@ -29,7 +29,7 @@ osg::ref_ptr<osg::MatrixTransform> mPlayerTrans;
 
 
 //Position and direction variables for the player
-osg::Vec3f player_pos;
+osg::Vec3f player_pos = osg::Vec3f(0,0,0);
 //(0, forward_dir)
 osg::Quat baseQuat = osg::Quat(0, 0, 1, 0);
 
@@ -73,10 +73,10 @@ sgct::SharedBool light(true);
 bool Buttons[9];
 enum directions { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN, ROLLLEFT, ROLLRIGHT, SHOOT };
 
-const float accRotVal = 0.003;
-const float accRotMax = 0.2;
-const float accThrustVal = 0.005;
-const float accThrustMax = 0.3;
+const float accRotVal = 0.005;
+const float accRotMax = 0.4;
+const float accThrustVal = 0.006;
+const float accThrustMax = 0.4;
 float accRotX = 0.0;
 float accRotY = 0.0;
 float accRotZ = 0.0;
@@ -89,8 +89,11 @@ osg::Vec3f osg_up_dir = osg::Vec3f(up_dir_x.getVal(), up_dir_y.getVal(), up_dir_
 //vector containing all projectiles in the scene
 std::vector<Projectile> missiles;
 
+//vector containg all objects (asteroids) in the scene
+std::vector<GameObject> objectList;
+
 const float fireRate = 0.4; //One bullet / 400ms
-const float projectileVelocity = 6.0;
+const float projectileVelocity = 40.0;
 float fireTimer = 0.0;
 
 
@@ -248,10 +251,10 @@ void myInitOGLFun()
 	
 
 	//Setup the scene graph
-	mRootNode->addChild(mPlayerTrans.get());
-	mRootNode->addChild(mNavTrans.get());
-	mNavTrans->addChild(mSceneTrans.get());
-	mNavTrans->addChild(skybox.get());
+	mRootNode->addChild(mPlayerTrans);
+	mRootNode->addChild(mNavTrans);
+	mNavTrans->addChild(mSceneTrans);
+	mNavTrans->addChild(skybox);
 
 	//Add player model
 	GameObject player = GameObject((std::string)("ettplan"), osg::Vec3f(0.0, 0.0, 0.0), (std::string)(""), mPlayerTrans);
@@ -266,7 +269,7 @@ void myInitOGLFun()
 		float rand2 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 		float rand3 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 		std::cout << "Succesfully loaded asteroid: " << i << "\n";
-		GameObject tempAsteroid = GameObject((std::string)("en asteroid"), osg::Vec3f(50 - rand1 * 100, 50 - rand2 * 100, 50 - rand3 * 100), (std::string)("models/asteroid.ive"), mSceneTrans);
+		objectList.push_back(GameObject((std::string)("en asteroid"), osg::Vec3f(50 - rand1 * 100, 50 - rand2 * 100, 50 - rand3 * 100), (std::string)("models/asteroid.ive"), mSceneTrans));
 	}
 
 	//Setup the lightsource
@@ -325,7 +328,14 @@ void myPostSyncPreDrawFun()
 	if (fireSync.getVal())
 	{
 		//Add and then sort new projectiles in the missile vector.
-		missiles.push_back(Projectile((std::string)("ettskott"), player_pos - osg_forward_dir, -osg_forward_dir, baseQuat, (std::string)("models/skott.ive"), mSceneTrans, 1.0f, -projectileVelocity));
+		missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(2, 0, 1), osg_forward_dir, baseQuat, (std::string)("models/skott.ive"), mSceneTrans, 1.0f, projectileVelocity));
+		for (int i = 1; i < missiles.size(); i++)
+		{
+			Projectile temp = missiles[missiles.size() - i];
+			missiles[missiles.size() - i] = missiles[missiles.size() - i - 1];
+			missiles[missiles.size() - i - 1] = temp;
+		}
+		missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(-2, 0, 1), osg_forward_dir, baseQuat, (std::string)("models/skott.ive"), mSceneTrans, 1.0f, projectileVelocity));
 		for (int i = 1; i < missiles.size(); i++)
 		{
 			Projectile temp = missiles[missiles.size() - i];
@@ -412,7 +422,7 @@ void myPostSyncPreDrawFun()
 	rotZ.setVal(0.0);
 
 
-	//Move or remove missiles
+	//Move, remove and check collisions for missiles.
 	for (int i = 0; i < missiles.size(); i++)
 	{
 		//Reduce lifetime of missile
@@ -430,7 +440,34 @@ void myPostSyncPreDrawFun()
 			missiles.pop_back();
 		}
 		else
-			missiles[i].translate(missiles[i].getDir()*missiles[i].getVel());
+		{
+			missiles[i].translate(missiles[i].getDir()*missiles[i].getVel()*gEngine->getDt());
+
+			//Remove asteroid and missile if collision occurs
+			for (int j = 0; j < objectList.size(); j++)
+			{
+				if ((missiles[i].getPos() - objectList[j].getPos()).length() < missiles[i].getColRad() + objectList[j].getColRad())
+				{
+					cout << (missiles[i].getPos() - objectList[j].getPos()).length() << " < " << missiles[i].getColRad() + objectList[j].getColRad() << " ? \n";
+					missiles[i].removeChildModel(missiles[i].getModel());
+					objectList[j].removeChildModel(objectList[j].getModel());
+					//objectList[j].setModel("models/airplane.ive");
+					//Place projectile and asteroid last in vector so we can use pop_back() correctly
+					Projectile tempProj = missiles[missiles.size() - 1];
+					missiles[missiles.size() - 1] = missiles[i];
+					missiles[i] = tempProj;
+					GameObject tempObj = objectList[objectList.size() - 1];
+					objectList[objectList.size() - 1] = objectList[j];
+					objectList[j] = tempObj;
+					
+					missiles.pop_back();
+					objectList.pop_back();
+
+					j = objectList.size();
+					i = missiles.size();
+				}
+			}
+		}
 	}
 
 	//update the frame stamp in the viewer to sync all

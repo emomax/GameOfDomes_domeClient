@@ -1,17 +1,17 @@
 #include "GameObject.h"
 
-GameObject::GameObject(std::string _name, osg::Vec3f _pos, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene)
+GameObject::GameObject(std::string _name, osg::Vec3f _pos, float _colRad, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, int _id)
 {
 	initTransform();
 	setVel(0.0);
 	setDir(osg::Vec3f(0.0f, 0.0f, 1.0f));
-	rigidBodyRadius = 3.0f;
+	rigidBodyRadius = _colRad;
 	translate(_pos);
 	//scale(0.01f);
 	setName(_name);
 	setDescr((std::string)("hej"));
 	_scene->addChild(getTrans());
-
+	setID(_id);
 	setModel(_model);
 }
 
@@ -45,6 +45,6 @@ GameObject GameObject::operator=(GameObject _g)
 	setDescr(_g.getDescr());
 	setColRad(_g.getColRad());
 	setModel(_g.getModel());
-
+	
 	return *this;
 }

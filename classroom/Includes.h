@@ -18,4 +18,9 @@
 #include <osgDB/ReadFile>
 #include <osgUtil/CullVisitor>
 
+#include <osg/Notify>
+#include <osg/Texture2D>
+#include <osg/Billboard>
+#include <osg/LineWidth>
+
 const float PI = 3.14159265358979;

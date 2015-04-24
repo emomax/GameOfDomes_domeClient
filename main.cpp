@@ -7,6 +7,7 @@ osgExample_sfs
 #include<string.h>
 #include<stdlib.h>
 #include<time.h>
+#include <fstream>
 
 
 #include "classroom\SkyBox.h"
@@ -76,16 +77,19 @@ sgct::SharedDouble gInputRotY(0.0);
 sgct::SharedDouble pInputRotX(0.0);
 sgct::SharedDouble pInputRotY(0.0);
 sgct::SharedDouble pInputRotZ(0.0);
+sgct::SharedDouble eInputEngine(0.0);
+sgct::SharedDouble eInputShield(0.0);
+sgct::SharedDouble eInputTurret(0.0);
 sgct::SharedFloat shakeTime(0.0);
 
 //Temporary variables that will be replaced after merge with SFS
 bool Buttons[9];
 enum directions { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN, ROLLLEFT, ROLLRIGHT, SHOOT };
 
-const float accRotVal = 0.005;
-const float accRotMax = 0.4;
-const float accThrustVal = 0.006;
-const float accThrustMax = 0.4;
+float accRotVal = 0.005;
+float accRotMax = 0.4;
+float accThrustVal = 0.006;
+float accThrustMax = 0.4;
 float accRotX = 0.0;
 float accRotY = 0.0;
 float accRotZ = 0.0;
@@ -111,8 +115,8 @@ bool shakeBridge = false;
 //Global index for objects in scene
 int objIndex = 0;
 
-const float fireRate = 0.4; //One bullet / 400ms
-const float projectileVelocity = 20.0;
+float fireRate = 0.4; //One bullet / 400ms
+float projectileVelocity = 20.0;
 float fireTimer = 0.0;
 
 
@@ -168,6 +172,16 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 			fireTimer = fireRate;
 		}
 	}
+	if (*ptrNotifiedCmd == "EngineerEvent") {
+		boost::shared_ptr<void> ptrEventParamValueParams = (*ptrEventParams)["params"];
+		boost::shared_ptr<ISFSObject> ptrNotifiedISFSObject = ((boost::static_pointer_cast<ISFSObject>)(ptrEventParamValueParams));
+
+		eInputEngine.setVal(*(ptrNotifiedISFSObject->GetFloat("sgctEngine")));
+		eInputShield.setVal(*(ptrNotifiedISFSObject->GetFloat("sgctShield")));
+		eInputTurret.setVal(*(ptrNotifiedISFSObject->GetFloat("sgctTurret")));
+
+		cout << "Engine: " << eInputEngine.getVal() << " Shield: " << eInputShield.getVal() << " Turret: " << eInputTurret.getVal() << endl;
+	}
 }
 
 // Handle networking
@@ -176,6 +190,20 @@ NetworkManager manager;
 int main(int argc, char* argv[])
 {
 	manager.init();
+	
+	fstream freader;
+	string trash;
+	freader.open("Configuration/variables.txt");
+	if (freader.is_open()) {
+		freader >> trash >> accRotVal
+				>> trash >> accRotMax
+				>> trash >> accThrustVal
+				>> trash >> accThrustMax
+				>> trash >> fireRate
+				>> trash >> projectileVelocity;
+	}
+	freader.close();
+
 
 	//SGCT setup
 	gEngine = new sgct::Engine(argc, argv);
@@ -206,7 +234,7 @@ int main(int argc, char* argv[])
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Main loop
-	mViewer->setSceneData(createModel(mGunnerTrans, mRootNode)); //function declaration in classroom/Billboard.h
+	//mViewer->setSceneData(createModel(mGunnerTrans, mRootNode)); //Create crosshair. Function declaration in classroom/Billboard.h
 	gEngine->render();
 
 	// Clean up
@@ -249,7 +277,6 @@ void myInitOGLFun()
 	mBridgeTrans = new osg::MatrixTransform();
 	mPlayerTrans->setMatrix(osg::Matrix::identity());
 	mBridgeTrans->setMatrix(osg::Matrix::identity());
-	//mGunnerTrans->postMult(osg::Matrix::translate(0, 4, 0));
 
 	//Setup the scene graph
 	mRootNode->addChild(mPlayerTrans);
@@ -259,14 +286,44 @@ void myInitOGLFun()
 	mPlayerTrans->addChild(mGunnerTrans);
 	mPlayerTrans->addChild(mBridgeTrans);
 
+
+	//***************************
+	//crosshair kod som ska flyttas
+
+	osg::Billboard* crosshairBillBoard = new osg::Billboard();
+	mGunnerTrans->addChild(crosshairBillBoard);
+
+	osg::Texture2D *crosshairTexture = new osg::Texture2D;
+	
+	osg::StateSet* billBoardStateSet = new osg::StateSet;
+	//billBoardStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	billBoardStateSet->setTextureAttributeAndModes(0, crosshairTexture, osg::StateAttribute::ON);
+	
+	billBoardStateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+	billBoardStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// Enable depth test so that an opaque polygon will occlude a transparent one behind it.
+	billBoardStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+	osg::BlendFunc* bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
+	billBoardStateSet->setAttributeAndModes(bf, osg::StateAttribute::ON);
+
+	osg::Drawable* crosshairDrawable;
+	crosshairDrawable = createCrosshair(1.0, billBoardStateSet);
+	crosshairBillBoard->addDrawable(crosshairDrawable, osg::Vec3(0,5,0));
+
+	//******************************************
+
+
 	//Add player object and commandbridge model
 	player = GameObject((std::string)("Spelaren"), osg::Vec3f(0, 0, 0), 5.1, (std::string)(""), mPlayerTrans, objIndex++);
-	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 5, 0), 0, (std::string)("models/plattbrygga.obj"), mBridgeTrans, objIndex++);
+	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 5, -4), 0, (std::string)("models/plattbrygga_3.obj"), mBridgeTrans, objIndex++);
 
 
-	//Apply static rotation to compensate for OSG-SGCT and to set commandbridge correctly
+	//Apply static rotation to compensate for OSG-SGCT and to transform commandbridge correctly
 	mPlayerTrans->postMult(osg::Matrix::rotate(-PI / 2.0, 1.0, 0.0, 0.0));
 	mBridgeTrans->postMult(osg::Matrix::rotate(PI / 4.0, 1.0, 0.0, 0.0));
+	//mBridgeTrans->postMult(osg::Matrix::rotate(PI / 2.0, 0.0, 1.0, 0.0));
 	mBridgeTrans->postMult(osg::Matrix::scale(0.1, 0.1, 0.1));
 
 	//Fill scene with 50 asteroids. Later this should be moved to specific scene functions for each level.
@@ -337,8 +394,12 @@ void myPostSyncPreDrawFun()
 	if (fireSync.getVal())
 	{
 		//Add and then sort new projectiles in the missile vector.
-		missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(2, 0, 1), baseQuat * osg::Vec3f(0, -1, 0) , -gunnerQuat, (std::string)("models/skott.ive"), mSceneTrans, 1.0f, projectileVelocity));
-		missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(-2, 0, 1), baseQuat * osg::Vec3f(0, -1, 0), -gunnerQuat, (std::string)("models/skott.ive"), mSceneTrans, 1.0f, projectileVelocity));
+		osg::Quat tempQuat = gunnerQuat;
+		tempQuat.x() = -tempQuat.x();
+		osg::Vec3f tempVec = (tempQuat * baseQuat) * osg::Vec3f(0, 1, 0);
+		osg::Quat tempDir = tempQuat * baseQuat;
+		missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(2, 0, 1), -tempVec, tempDir, (std::string)("models/skott.ive"), mSceneTrans, 1.0f, projectileVelocity));
+		missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(-2, 0, 1), -tempVec, tempDir, (std::string)("models/skott.ive"), mSceneTrans, 1.0f, projectileVelocity));
 
 		fireSync.setVal(false);
 	}
@@ -348,20 +409,9 @@ void myPostSyncPreDrawFun()
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
 
-	//Probably not very useful
-	if (takeScreenshot.getVal())
-	{
-		gEngine->takeScreenshot();
-		takeScreenshot.setVal(false);
-	}
-
 	//Enable or disable light with the L button
 	light.getVal() ? mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
-
-	//theta och phi problemet
-	//if (phi > PI)
-	//	theta.setVal(-theta.getVal());
 
 	//Reset navigation transform every frame
 	mNavTrans->setMatrix(osg::Matrix::identity());
@@ -385,7 +435,7 @@ void myPostSyncPreDrawFun()
 	osg::Quat rX = osg::Quat(rotX.getVal(), normal3);
 	osg::Quat rY = osg::Quat(rotY.getVal(), normal1);
 	osg::Quat rZ = osg::Quat(rotZ.getVal(), normal2);
-
+	
 
 	//Get rotated quaternion
 	baseQuat = baseQuat * rX.conj();
@@ -487,13 +537,15 @@ void myPostSyncPreDrawFun()
 		float rand1 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 		float rand2 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 		float rand3 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-		mNavTrans->postMult(osg::Matrix::rotate(gEngine->getDt(),rand1,rand2,0));
+		mNavTrans->postMult(osg::Matrix::rotate(2.5*gEngine->getDt(),rand1,rand2,0));
 		shakeTime.setVal(shakeTime.getVal() + gEngine->getDt());
 		if (shakeTime > 0.5){
 			shakeBridge = false;
 		}
 		
 	}
+
+
 
 		//update the frame stamp in the viewer to sync all
 		//time based events in osg

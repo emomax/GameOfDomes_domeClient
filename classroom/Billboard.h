@@ -50,7 +50,7 @@ osg::Node* createModel(osg::ref_ptr<osg::MatrixTransform> _theTrans, osg::ref_pt
 	center->setMode(osg::Billboard::POINT_ROT_EYE);
 	center->addDrawable(
 		createSquare(osg::Vec3(-0.5f, 0.0f, -0.5f), osg::Vec3(1.0f, 0.0f, 0.0f), osg::Vec3(0.0f, 0.0f, 1.0f), osgDB::readImageFile("textures/crosshair.png")),
-		osg::Vec3(0.0f, 4.0f, 0.0f));
+		osg::Vec3(0.0f, 5.0f, 0.0f));
 
 
 	if (!(center))
@@ -62,4 +62,36 @@ osg::Node* createModel(osg::ref_ptr<osg::MatrixTransform> _theTrans, osg::ref_pt
 	_theTrans->addChild(center);
 
 	return _theRoot;
+}
+
+osg::Drawable* createCrosshair(const float & scale, osg::StateSet* bbState)
+{
+	float width = 1.5f;
+	float height = 3.0f;
+
+	width *= scale;
+	height *= scale;
+
+	osg::Geometry* crosshairQuad = new osg::Geometry;
+
+	osg::Vec3Array* crosshairVerts = new osg::Vec3Array(4);
+	(*crosshairVerts)[0] = osg::Vec3(-width / 2.0f, 0, 0);
+	(*crosshairVerts)[1] = osg::Vec3(width / 2.0f, 0, 0);
+	(*crosshairVerts)[2] = osg::Vec3(width / 2.0f, 0, height);
+	(*crosshairVerts)[3] = osg::Vec3(-width / 2.0f, 0, height);
+
+	crosshairQuad->setVertexArray(crosshairVerts);
+
+	osg::Vec2Array* crosshairTexCoords = new osg::Vec2Array(4);
+	(*crosshairTexCoords)[0].set(0.0f, 0.0f);
+	(*crosshairTexCoords)[1].set(1.0f, 0.0f);
+	(*crosshairTexCoords)[2].set(1.0f, 1.0f);
+	(*crosshairTexCoords)[3].set(0.0f, 1.0f);
+	crosshairQuad->setTexCoordArray(0, crosshairTexCoords);
+
+	crosshairQuad->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
+
+	crosshairQuad->setStateSet(bbState);
+
+	return crosshairQuad;
 }

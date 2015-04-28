@@ -9,6 +9,8 @@
 // Define timeout for connection
 #define SMARTFOX_MAXIMUMWAITFORCONNECTIONESTABLISHMENT	10000	// UM: milliseconds. The time to wait the establishment of connection with SmartFox
 
+using namespace std;
+
 //! This handler takes care of setup once we have established a connection to the server. If we successfully log in we will attempt to send a request for logging in.
 void NetworkManager::OnSmartFoxConnection(unsigned long long ptrContext, boost::shared_ptr<BaseEvent> ptrEvent)
 {
@@ -47,7 +49,7 @@ void NetworkManager::OnSmartFoxConnection(unsigned long long ptrContext, boost::
 			// Let's send a request for logging in.
 	
 			// Choose a befitting name for c++ client
-			string loginName = "DomeHandler";
+			string loginName = "DomeHandler2";
 
 			// Perform login request
 			boost::shared_ptr<IRequest> request(new LoginRequest(loginName, "", "BasicExamples"));
@@ -80,28 +82,31 @@ void NetworkManager::OnSmartFoxRoomJoined(unsigned long long ptrContext, boost::
 	NetworkManager* ptrMainFrame = (NetworkManager*)ptrContext;
 
 	cout << "We successfully managed to join room." << endl;
-	//cout << "Attempt to send int .." << endl;
+	/*cout << "Attempt to send int .." << endl;
 
 	// Send some garbage data just to see what happens
-	//boost::shared_ptr<ISFSObject> parameters(new SFSObject());
-	//parameters->PutInt("rotX", 1);
-	//parameters->PutInt("rotY", 0);
-	//parameters->PutInt("thrust", 0);
+	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
+	parameters->PutInt("rotX", 1);
+	parameters->PutInt("rotY", 0);
+	parameters->PutInt("thrust", 0);
 
 	// See what room we are in.
-	//boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
+	boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
 
 	// Perform extensionrequest
-	//boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("RequestTransform", parameters, lastJoined));
-	//ptrMainFrame->m_ptrSmartFox->Send(extRequest);
+	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("RequestTransform", parameters, lastJoined));
+	ptrMainFrame->m_ptrSmartFox->Send(extRequest);
 
-	//cout << "Item sent!" << endl;
+	cout << "Item sent!" << endl;*/
+
+
 }
 
 //! Says what to do once the server confirmed our login request. As of 0.0.1 it only sends a request for one of the server extensions.
 void NetworkManager::OnSmartFoxLogin(unsigned long long ptrContext, boost::shared_ptr<BaseEvent> ptrEvent) {
 	// get pointer to main frame.
 	NetworkManager* ptrMainFrame = (NetworkManager*)ptrContext;
+	// do it
 
 	cout << "Successfully logged in!" << endl;
 	cout << "Attempting to join room 'The Lobby'.." << endl;
@@ -121,6 +126,7 @@ void NetworkManager::OnSmartFoxLogin(unsigned long long ptrContext, boost::share
 	ptrMainFrame->m_ptrSmartFox->InitUDP();
 	put("UDP handshake request sent!");
 	*/
+
 }
 
 //! This function should clean everything up when we disconnect from the server. Disconnecting on purpose should only be called when the application is terminated or exited.
@@ -181,3 +187,28 @@ void NetworkManager::init() {
 	cout << "SmartFoxServer connection initiated!" << endl;
 }
 
+void NetworkManager::startBenchmarking() {
+	if (benchmarkingStarted)
+		return;
+
+	benchmarkingStarted = true;
+	/** start sending benchmarking items. **/
+	itemsSent = 0;
+	std::cout << "\n\nInitiating benchmarking..\n-----------------------" << endl;
+	std::cout << "Sending packets with 32 bytes of pure data." << endl;
+	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
+	start = omp_get_wtime();
+
+	parameters->PutDouble("1", 0.923);
+	parameters->PutDouble("2", 0.953);
+	parameters->PutDouble("3", 0.343);
+	parameters->PutDouble("4", 0.523);
+
+	// find our room to send to.
+	boost::shared_ptr<Room> lastJoined = m_ptrSmartFox->LastJoinedRoom();
+
+	// Perform extensionrequest
+	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters, lastJoined));
+	m_ptrSmartFox->Send(extRequest);
+
+}

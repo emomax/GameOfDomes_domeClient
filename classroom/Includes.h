@@ -23,4 +23,6 @@
 #include <osg/Billboard>
 #include <osg/LineWidth>
 
+#include <osg/BlendFunc>
+
 const float PI = 3.14159265358979;

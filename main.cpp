@@ -9,12 +9,16 @@ osgExample_sfs
 #include<time.h>
 #include <fstream>
 
+/* Custom items */
+#include "classroom\SoundManager.h"
 
 #include "classroom\SkyBox.h"
 #include "classroom\Projectile.h"
 #include "classroom\EnemyShip.h"
 #include "classroom\NetworkManager.h"
 #include "classroom\Billboard.h"
+
+
 
 sgct::Engine * gEngine;
 
@@ -119,6 +123,17 @@ float fireRate = 0.4; //One bullet / 400ms
 float projectileVelocity = 20.0;
 float fireTimer = 0.0;
 
+// Manage sound handling
+SoundManager soundManager;
+
+// Benchmarking static vars
+
+// Benchmarking items
+double NetworkManager::start;
+double NetworkManager::end;
+int NetworkManager::itemsSent;
+bool NetworkManager::benchmarkingStarted = false;
+
 
 //! When something from a server extension is received this function is called. Could be position updating  of gameobject, a private message or just a notification. The ["cmd"] parameter of the event that is received  reveals which extension that was spitting out the info. Based on extension this function will do different things.
 void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, boost::shared_ptr<BaseEvent> ptrEvent) {
@@ -168,6 +183,7 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 		bool fire = *(ptrNotifiedISFSObject->GetBool("sgctFire"));
 
 		if (fire && fireTimer <= 0.0 ) {
+			soundManager.play("", glm::vec3(0.0f, 0.0f, 0.0f));
 			fireSync.setVal(true);
 			fireTimer = fireRate;
 		}
@@ -182,6 +198,41 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 
 		cout << "Engine: " << eInputEngine.getVal() << " Shield: " << eInputShield.getVal() << " Turret: " << eInputTurret.getVal() << endl;
 	}
+	if (*ptrNotifiedCmd == "BenchMarking") {
+
+		boost::shared_ptr<void> ptrEventParamValueParams = (*ptrEventParams)["params"];
+		boost::shared_ptr<ISFSObject> ptrNotifiedISFSObject = ((boost::static_pointer_cast<ISFSObject>)(ptrEventParamValueParams));
+
+		double item = *(ptrNotifiedISFSObject->GetDouble("1"));
+		double item2 = *(ptrNotifiedISFSObject->GetDouble("2"));
+		double item3 = *(ptrNotifiedISFSObject->GetDouble("3"));
+		double item4 = *(ptrNotifiedISFSObject->GetDouble("4"));
+
+		end = omp_get_wtime();
+		std::cout << "Reply from server, " << static_cast<int>((end - start) * 1000) << "ms." << endl;
+
+		start = omp_get_wtime();
+		// send new item 
+		if (itemsSent++ < 35 && benchmarkingStarted) {
+			boost::shared_ptr<ISFSObject> parameters(new SFSObject());
+
+			parameters->PutDouble("1", 0.923);
+			parameters->PutDouble("2", 0.953);
+			parameters->PutDouble("3", 0.343);
+			parameters->PutDouble("4", 0.523);
+
+			// find our room to send to.
+			boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
+
+			// Perform extensionrequest
+			boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters, lastJoined));
+			ptrMainFrame->m_ptrSmartFox->Send(extRequest);
+		}
+		else {
+			benchmarkingStarted = false;
+			itemsSent = 0;
+		}
+	}
 }
 
 // Handle networking
@@ -190,6 +241,8 @@ NetworkManager manager;
 int main(int argc, char* argv[])
 {
 	manager.init();
+
+	soundManager.init();
 	
 	fstream freader;
 	string trash;
@@ -294,11 +347,14 @@ void myInitOGLFun()
 	mGunnerTrans->addChild(crosshairBillBoard);
 
 	osg::Texture2D *crosshairTexture = new osg::Texture2D;
-	
+
+	crosshairTexture->setImage(osgDB::readImageFile("textures/crosshair.png"));
+	cout << "Type of image is: " << crosshairTexture->getImage()->getPixelFormat() << endl;
+
 	osg::StateSet* billBoardStateSet = new osg::StateSet;
 	//billBoardStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 	billBoardStateSet->setTextureAttributeAndModes(0, crosshairTexture, osg::StateAttribute::ON);
-	
+
 	billBoardStateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
 	billBoardStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
@@ -310,7 +366,7 @@ void myInitOGLFun()
 
 	osg::Drawable* crosshairDrawable;
 	crosshairDrawable = createCrosshair(1.0, billBoardStateSet);
-	crosshairBillBoard->addDrawable(crosshairDrawable, osg::Vec3(0,5,0));
+	crosshairBillBoard->addDrawable(crosshairDrawable, osg::Vec3(0, 5, 0));
 
 	//******************************************
 
@@ -383,8 +439,10 @@ void myPreSyncFun()
 		if (Buttons[ROLLLEFT])
 			accRotY += accRotVal;
 		if (Buttons[SHOOT] && fireTimer <= 0.0){
-			fireSync.setVal(true);
-			fireTimer = fireRate;
+			manager.startBenchmarking();
+
+			//fireSync.setVal(true);
+			//fireTimer = fireRate;
 		}
 	}
 }

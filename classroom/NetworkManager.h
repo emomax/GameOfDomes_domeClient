@@ -1,10 +1,11 @@
 
-#include "SmartFox.h"
-#include "Requests\ExtensionRequest.h"
-#include "Requests\JoinRoomRequest.h"
-#include "Requests\LoginRequest.h"
+#include "..\..\..\..\..\..\Program Files\trunk_api\SmartFox.h"
+#include "..\..\..\..\..\..\Program Files\trunk_api\Requests\ExtensionRequest.h"
+#include "..\..\..\..\..\..\Program Files\trunk_api\Requests\JoinRoomRequest.h"
+#include "..\..\..\..\..\..\Program Files\trunk_api\Requests\LoginRequest.h"
 
-using namespace std;
+/* Benchmarking reqs */
+#include <omp.h>
 
 class NetworkManager {
 
@@ -12,7 +13,7 @@ public:
 	NetworkManager();
 	virtual ~NetworkManager();
 	void init();
-
+	void startBenchmarking();
 
 private:
 	
@@ -29,4 +30,11 @@ private:
 	
 	HANDLE SmartFoxConnectionEstablished;
 	boost::shared_ptr<Sfs2X::SmartFox> m_ptrSmartFox;
+
+	// Benchmarking items
+	static double start;
+	static double end;
+	static int itemsSent;
+
+	static bool benchmarkingStarted;
 };

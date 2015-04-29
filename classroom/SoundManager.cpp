@@ -47,15 +47,15 @@ void SoundManager::init() {
 
 
 
-	/*alGenSources(1, &explosionSource);
+	/*alGenSources(1, &gameMusicSource);*/
+	alGenSources(1, &explosionSource);
+	alGenSources(1, &menuMusicSource);
 	alGenSources(1, &laserSource);
-	alGenSources(1, &menuMusicSource);*/
-	alGenSources(1, &gameMusicSource);
 
-	/*setSource(&explosionSource, "sounds/gameOver2.wav");
-	setSource(&laserSource, "sounds/gameOver2.wav");
-	setSource(&menuMusicSource, "sounds/gameOver2.wav");*/
-	setSource(&gameMusicSource, "sounds/laser.wav");
+	/*setSource(&gameMusicSource, "sounds/gameOver2.wav");*/
+	setSource(&explosionSource, "sounds/explosion1.wav");
+	setSource(&menuMusicSource, "sounds/gameOver2.wav");
+	setSource(&laserSource, "sounds/laser.wav");
 
 
 }
@@ -63,7 +63,15 @@ void SoundManager::init() {
 //! Plays the score parameter at given position vec3.
 void SoundManager::play(std::string score, glm::vec3 position) {
 
-	alSourcePlay(gameMusicSource);
+	if (score == "gameOver") {
+		alSourcePlay(menuMusicSource);
+	}
+	if (score == "laser") {
+		alSourcePlay(laserSource);
+	}
+	if (score == "explosion") {
+		alSourcePlay(explosionSource);
+	}
 }
 
 //! Takes parameter URL, loads file and sets up sound for source parameter

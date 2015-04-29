@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
 	sgct_core::ClusterManager::instance()->setMeshImplementation(sgct_core::ClusterManager::DISPLAY_LIST);
 
 	//Initialize buttoninput
-	for (int i = 0; i<7; i++)
+	for (int i = 0; i<9; i++)
 		Buttons[i] = false;
 
 	if (!gEngine->init())
@@ -291,7 +291,6 @@ int main(int argc, char* argv[])
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Main loop
-	//mViewer->setSceneData(createModel(mGunnerTrans, mRootNode)); //Create crosshair. Function declaration in classroom/Billboard.h
 	gEngine->render();
 
 	// Clean up
@@ -316,7 +315,7 @@ void myInitOGLFun()
 	//Skybox code needs to be cleaned up
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->addDrawable(new osg::ShapeDrawable(
-		new osg::Sphere(osg::Vec3(), 90)));  //scene->getBound().radius())));
+		new osg::Sphere(osg::Vec3(), 150)));  //scene->getBound().radius())));
 	geode->setCullingActive(false);
 	osg::ref_ptr<SkyBox> skybox = new SkyBox;
 	skybox->getOrCreateStateSet()->setTextureAttributeAndModes(0, new osg::TexGen);
@@ -343,9 +342,20 @@ void myInitOGLFun()
 	mPlayerTrans->addChild(mGunnerTrans);
 	mPlayerTrans->addChild(mBridgeTrans);
 
+	//Create the crosshair and set to be child of mGunnerTrans
+	createBillboard(0.3, osg::Vec3f(0, 5, 0), "textures/crosshair.png", mGunnerTrans);
+
+
+	//Add player object and commandbridge model
+	player = GameObject((std::string)("Spelaren"), osg::Vec3f(0, 0, 0), 5.1, (std::string)(""), mPlayerTrans, objIndex++);
+	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 5, -4), 0, (std::string)("*models/plattbrygga_3.obj"), mBridgeTrans, objIndex++);
+
+
 	//Apply static rotation to compensate for OSG-SGCT and to transform commandbridge correctly
 	mPlayerTrans->postMult(osg::Matrix::rotate(-PI / 2.0, 1.0, 0.0, 0.0));
+	mPlayerTrans->postMult(osg::Matrix::translate(0.0f, 0.0f, 2.0f));
 	mBridgeTrans->postMult(osg::Matrix::rotate(PI / 4.0, 1.0, 0.0, 0.0));
+	mBridgeTrans->postMult(osg::Matrix::translate(0.0f, 2.0f, 0.0f));
 	//mBridgeTrans->postMult(osg::Matrix::rotate(PI / 2.0, 0.0, 1.0, 0.0));
 	mBridgeTrans->postMult(osg::Matrix::scale(0.1, 0.1, 0.1));
 
@@ -377,8 +387,8 @@ void myPreSyncFun()
 				rotY.setVal(rotY.getVal() + (accRotY * gEngine->getDt()));
 				rotZ.setVal(rotZ.getVal() + (accRotZ * gEngine->getDt()));
 
-				gInputRotX.setVal(gInputRotX.getVal()*0.90);
-				gInputRotY.setVal(gInputRotY.getVal()*0.90);
+				gInputRotX.setVal(gInputRotX.getVal()*0.85);
+				gInputRotY.setVal(gInputRotY.getVal()*0.85);
 
 				//cout << accRotX << endl;
 
@@ -481,8 +491,8 @@ void myPostSyncPreDrawFun()
 
 			//Gunner rotation
 			mGunnerTrans->setMatrix(osg::Matrix::identity());
-			//mGunnerTrans->preMult(osg::Matrix::rotate(-PI / 2, 1.0f, 0.0f, 0.0f));
 
+			//External input uses X- and Y coordinates which is translated to X- and Z in SGCT
 			osg::Quat gRX = osg::Quat(gInputRotX.getVal() * gEngine->getDt(), osg::Vec3(0, 0, 1));
 			osg::Quat gRZ = osg::Quat(-gInputRotY.getVal() * gEngine->getDt(), osg::Vec3(1, 0, 0));
 
@@ -490,7 +500,6 @@ void myPostSyncPreDrawFun()
 			gunnerQuat = gunnerQuat * gRZ.conj();
 
 			mGunnerTrans->postMult(osg::Matrix::rotate(gunnerQuat));
-			//mGunnerTrans->postMult(osg::Matrix::rotate(sin(gEngine->getDt()), 0, 0, 1));
 
 
 			//Transform to scene transformation from configuration file

@@ -31,7 +31,7 @@ void setGameState(int _state, int& _objIndex, GameObject _player, GameObject _br
 		//Game Screen
 	case 1: {
 				cout << "State set to GAME_SCREEN." << endl;
-
+				_mGunnerTrans->removeChildren(0, _mGunnerTrans->getNumChildren());
 				//Create the crosshair and set to be child of mGunnerTrans
 				createBillboard(0.3, osg::Vec3f(0, 5, 0), "textures/crosshair.png", _mGunnerTrans);
 

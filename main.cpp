@@ -485,17 +485,6 @@ void myPostSyncPreDrawFun()
 		newState.setVal(false);
 	}
 
-	if (demoTime < 0.0)
-	{
-		int rand1 = 50 - (randomSeed.getVal() * 263 + 71) % 100;
-		int rand2 = 50 - ((50 + rand1) * 263 + 71) % 100;
-		int rand3 = 50 - ((50 + rand2) * 263 + 71) % 100;
-		randomSeed.setVal(rand3);
-		objectList.push_back(new EnemyShip((std::string)("Enemy"), osg::Vec3f(rand1, rand2, rand3), 5.0f, (std::string)("models/fiendeskepp16.ive"), mSceneTrans, 3, objIndex++));
-		demoTime = 3.0;
-	}
-	demoTime -= gEngine->getDt();
-
 
 	switch (gameState.getVal()) {
 	//Welcome Screen
@@ -506,6 +495,19 @@ void myPostSyncPreDrawFun()
 
 	//Game Screen
 		case 1: {
+
+			//Demotest. Spawn enemies every 3 second.
+			if (demoTime < 0.0)
+			{
+				int rand1 = 50 - (randomSeed.getVal() * 263 + 71) % 100;
+				int rand2 = 50 - ((50 + rand1) * 263 + 71) % 100;
+				int rand3 = 50 - ((50 + rand2) * 263 + 71) % 100;
+				randomSeed.setVal(rand3);
+				objectList.push_back(new EnemyShip((std::string)("Enemy"), osg::Vec3f(rand1, rand2, rand3), 5.0f, (std::string)("models/fiendeskepp16.ive"), mSceneTrans, 3, objIndex++));
+				demoTime = 3.0;
+			}
+			demoTime -= gEngine->getDt();
+
 			if (fireSync.getVal())
 			{
 				//Add and then sort new projectiles in the missile vector.

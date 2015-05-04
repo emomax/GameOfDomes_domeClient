@@ -1,17 +1,19 @@
+#pragma once
 
 #include "GameObject.h"
+#include "Includes.h"
 
-#include <osgDB/ReadFile>
-#include <osg/MatrixTransform>
-#include <osg/ComputeBoundsVisitor>
-
-#include <osg/Depth>
-#include <osg/TexGen>
-#include <osg/TextureCubeMap>
-#include <osg/ShapeDrawable>
-#include <osg/Geode>
-#include <osgDB/ReadFile>
-#include <osgUtil/CullVisitor>
+//#include <osgDB/ReadFile>
+//#include <osg/MatrixTransform>
+//#include <osg/ComputeBoundsVisitor>
+//
+//#include <osg/Depth>
+//#include <osg/TexGen>
+//#include <osg/TextureCubeMap>
+//#include <osg/ShapeDrawable>
+//#include <osg/Geode>
+//#include <osgDB/ReadFile>
+//#include <osgUtil/CullVisitor>
 
 class Projectile : public GameObject
 {

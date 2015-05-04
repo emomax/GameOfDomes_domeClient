@@ -1,13 +1,20 @@
-#include "SpaceShip.h"
+#include "GameObject.h"
+#include "Includes.h"
 
-class EnemyShip : public osg::Transform
+class EnemyShip : public GameObject
 {
 public:
 	EnemyShip();
-	
-	void react();
+	EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, float _hp, int _id);
+
+	void setHp(float _hp) { hp = _hp; }
+
+	void updateAI(osg::Vec3f _playerPos);
+
+	virtual ~EnemyShip() {}
 
 private:
-	std::string attackMode;
+	float hp;
+
 	enum currState;
 };

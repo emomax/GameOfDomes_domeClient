@@ -5,6 +5,7 @@ GameObject::GameObject(std::string _name, osg::Vec3f _pos, float _colRad, std::s
 	initTransform();
 	setVel(0.0);
 	setDir(osg::Vec3f(0.0f, 0.0f, 1.0f));
+	setOrientation(osg::Quat(0.0f, 0.0f, 0.0f, 1.0f));
 	rigidBodyRadius = _colRad;
 	translate(_pos);
 	//scale(0.01f);
@@ -22,11 +23,6 @@ void GameObject::setModel(std::string _fileName)
 	if (model.valid())
 	{
 		addChildModel(model);
-
-		//get the bounding box
-		//osg::ComputeBoundsVisitor cbv;
-		//osg::BoundingBox &bb(cbv.getBoundingBox());
-		//model->accept(cbv);
 
 		//disable face culling
 		model->getOrCreateStateSet()->setMode(GL_CULL_FACE,

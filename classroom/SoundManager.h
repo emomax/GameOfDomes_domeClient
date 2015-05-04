@@ -15,15 +15,24 @@ public:
 	void init();
 
 	void play(std::string score, glm::vec3 position);
-	void stopMusic(){}
+	void stopMusic();
 	void pauseMusic(){}
 
 private:
+	// SFX
 	ALuint explosionSource;
 	ALuint laserSource;
+
+	// SCORES
+	ALuint inGameSource;
+	ALuint preGameSource;
 	ALuint menuMusicSource;
 	ALuint gameMusicSource;
+	ALuint gameOverSource;
 
+	// To keep track on what music is currently playing
+	ALuint *currentBackgroundScore;
+	bool bgIsPlaying = false;
 
 	ALfloat SourcePos[3];
 	ALfloat SourceVel[3];

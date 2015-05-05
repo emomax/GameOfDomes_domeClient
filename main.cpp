@@ -73,7 +73,7 @@ sgct::SharedBool light(true);
 
 
 //State of the game. 0 = Welcome Screen. 1 = Game Screen. 2 = Gameover Screen. 3 = Pre-game Screen.
-//newState is used to let all nodes know which frame the state-change takes place. 
+//newState is used to let all nodes know which frame the state-change takes place.
 sgct::SharedInt gameState(0);
 sgct::SharedBool newState(true);
 
@@ -208,7 +208,7 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 		eInputEngine = ( (float)(*(ptrNotifiedISFSObject->GetFloat("sgctEngine"))) * 3 + 0.5);
 		eInputShield = ( (float)(*(ptrNotifiedISFSObject->GetFloat("sgctShield"))) + 0.5);
 		eInputTurret = ( (float)(*(ptrNotifiedISFSObject->GetFloat("sgctTurret"))) + 0.5);
-		
+
 	}
 	if (*ptrNotifiedCmd == "BenchMarking") {
 
@@ -224,7 +224,7 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 		std::cout << "Reply from server, " << static_cast<int>((end - start) * 1000) << "ms." << endl;
 
 		start = omp_get_wtime();
-		// send new item 
+		// send new item
 		if (itemsSent++ < 35 && benchmarkingStarted) {
 			boost::shared_ptr<ISFSObject> parameters(new SFSObject());
 
@@ -366,7 +366,10 @@ void myInitOGLFun()
 	//soundManager.play("gameOver", osg::Vec3f(0.0f, 0.0f, 0.0f));
 
 }
+
 float x = 0;
+double checkIfImAwake = 100;
+
 void myPreSyncFun()
 {
 	//The master node handle calculation of new values that will later be synced with all nodes
@@ -374,6 +377,11 @@ void myPreSyncFun()
 	{
 		//Update current time
 		curr_time.setVal(sgct::Engine::getTime());
+
+        if (checkIfImAwake < curr_time.getVal()) {
+			manager.alarm();
+			checkIfImAwake += 100;
+        }
 
 		switch (gameState.getVal()) {
 			//Welcome Screen
@@ -384,14 +392,14 @@ void myPreSyncFun()
 
 			//Pre-game Screen
 			case 3: {
-			
+
 			}
 			break;
 
 			//Game Screen
 			case 1: {
 
-				// Update velocities based on SGCT key input 
+				// Update velocities based on SGCT key input
 				if (Buttons[FORWARD] && navigationSpeed < 0.4)
 					navigationSpeed += 0.04;
 				if (Buttons[BACKWARD] && navigationSpeed > -0.4)
@@ -421,7 +429,7 @@ void myPreSyncFun()
 
 
 				//Update pilot values. Energy loss is used for retardation of the ship.
-				navigationSpeed = navigationSpeed * 0.90; 
+				navigationSpeed = navigationSpeed * 0.90;
 				accRotX = accRotX*0.97;
 				accRotY = accRotY*0.97;
 				accRotZ = accRotZ*0.97;
@@ -496,7 +504,7 @@ void myPostSyncPreDrawFun()
 	switch (gameState.getVal()) {
 	//Welcome Screen
 		case 0: {
-			// DO NOTHING FOR NOW. MAYBE SHOW BILLBOARD 
+			// DO NOTHING FOR NOW. MAYBE SHOW BILLBOARD
 		}
 		break;
 
@@ -567,7 +575,7 @@ void myPostSyncPreDrawFun()
 			//Transform to scene transformation from configuration file
 			mSceneTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
 
-			
+
 		//Collision handling. This should probably get moved into its own class
 
 			//Move, remove and check collisions for missiles.
@@ -594,7 +602,7 @@ void myPostSyncPreDrawFun()
 						{
 							mIterator->removeChildModel(mIterator->getModel());
 							(*oIterator)->removeChildModel((*oIterator)->getModel());
-							
+
 							soundManager.play("explosion", player_pos  - (*oIterator)->getPos());
 
 							missiles.erase(mIterator);
@@ -651,7 +659,7 @@ void myPostSyncPreDrawFun()
 			}
 		}
 		break;
-	
+
 	//Pre-game Screen
 		case 3: {
 					if (curr_time.getVal() > 38){

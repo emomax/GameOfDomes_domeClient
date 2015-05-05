@@ -39,15 +39,15 @@ void NetworkManager::OnSmartFoxConnection(unsigned long long ptrContext, boost::
 		return;
 	}
 
-	// We got response from server. Let's wait a while 
+	// We got response from server. Let's wait a while
 	// to see if we successfully connect to the server.
 	DWORD dwRc = ::WaitForSingleObject(ptrMainFrame->SmartFoxConnectionEstablished, SMARTFOX_MAXIMUMWAITFORCONNECTIONESTABLISHMENT);
 
 	switch (dwRc) {
 		case WAIT_OBJECT_0:	{
-			// Our waiter said we're all A-OK. 
+			// Our waiter said we're all A-OK.
 			// Let's send a request for logging in.
-	
+
 			// Choose a befitting name for c++ client
 			string loginName = "DomeHandler2";
 
@@ -119,7 +119,7 @@ void NetworkManager::OnSmartFoxLogin(unsigned long long ptrContext, boost::share
 
 	cout << "JoinRoom request sent!" << endl;
 
-	// NOTE: For now we settle with TCP transmitting. 
+	// NOTE: For now we settle with TCP transmitting.
 	// It seems to be something wrong with the c++ api..
 
 	/* put("Attempt to init UDP transmitting..");
@@ -187,6 +187,7 @@ void NetworkManager::init() {
 	cout << "SmartFoxServer connection initiated!" << endl;
 }
 
+//! Function for benchmarking network speed. Send packages of 32 bytes at minimum.
 void NetworkManager::startBenchmarking() {
 	if (benchmarkingStarted)
 		return;
@@ -209,6 +210,20 @@ void NetworkManager::startBenchmarking() {
 
 	// Perform extensionrequest
 	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters, lastJoined));
+	m_ptrSmartFox->Send(extRequest);
+
+}
+
+//! Function to notify server that dome is still awake.
+void NetworkManager::alarm() {
+	// Create the object
+	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
+
+	// Find the last joined room to easen things up for the server
+	boost::shared_ptr<Room> lastJoined = m_ptrSmartFox->LastJoinedRoom();
+	// Create the extensionrequest
+	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("ImAwake", parameters, lastJoined));
+	// Send the motherpucker
 	m_ptrSmartFox->Send(extRequest);
 
 }

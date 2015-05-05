@@ -1,8 +1,9 @@
+#pragma once
 
-#include "..\..\..\..\..\..\Program Files\trunk_api\SmartFox.h"
-#include "..\..\..\..\..\..\Program Files\trunk_api\Requests\ExtensionRequest.h"
-#include "..\..\..\..\..\..\Program Files\trunk_api\Requests\JoinRoomRequest.h"
-#include "..\..\..\..\..\..\Program Files\trunk_api\Requests\LoginRequest.h"
+#include "SmartFox.h"
+#include "Requests\ExtensionRequest.h"
+#include "Requests\JoinRoomRequest.h"
+#include "Requests\LoginRequest.h"
 
 /* Benchmarking reqs */
 #include <omp.h>

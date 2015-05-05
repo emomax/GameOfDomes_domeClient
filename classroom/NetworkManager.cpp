@@ -197,7 +197,7 @@ void NetworkManager::startBenchmarking() {
 	std::cout << "\n\nInitiating benchmarking..\n-----------------------" << endl;
 	std::cout << "Sending packets with 32 bytes of pure data." << endl;
 	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
-	start = omp_get_wtime();
+//	start = omp_get_wtime();
 
 	parameters->PutDouble("1", 0.923);
 	parameters->PutDouble("2", 0.953);

@@ -8,7 +8,6 @@ GameObject::GameObject(std::string _name, osg::Vec3f _pos, float _colRad, std::s
 	setOrientation(osg::Quat(0.0f, 0.0f, 0.0f, 1.0f));
 	rigidBodyRadius = _colRad;
 	translate(_pos);
-	//scale(0.01f);
 	setName(_name);
 	setDescr((std::string)("hej"));
 	_scene->addChild(getTrans());

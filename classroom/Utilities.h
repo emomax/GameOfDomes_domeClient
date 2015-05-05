@@ -16,14 +16,14 @@ void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 //Function for changing level. the list containing all objects and the relevant matrix transforms are called as reference. Note that the matrix transforms are pointers.
 void setGameState(int _state, int& _objIndex, GameObject _player, GameObject _bridge, std::list<GameObject*>& _objList, osg::ref_ptr<osg::MatrixTransform> _mGunnerTrans,
 	osg::ref_ptr<osg::MatrixTransform> _mNavTrans, osg::ref_ptr<osg::MatrixTransform> _mPlayerTrans, osg::ref_ptr<osg::MatrixTransform> _mBridgeTrans,
-	osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, SoundManager _soundManager, int _randomSeed) {
+	osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, SoundManager& _soundManager, int _randomSeed) {
 
 	switch (_state) {
 		//Welcome Screen
 	case 0: {
 				cout << "State set to WELCOME_SCREEN." << endl;
 				createBillboard(1.0, osg::Vec3f(0, 3, -1), "textures/dome_startscreen.png", _mGunnerTrans);
-
+				_soundManager.play("mainMenu_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 				_state = 0;
 	}
 		break;
@@ -31,32 +31,32 @@ void setGameState(int _state, int& _objIndex, GameObject _player, GameObject _br
 		//Game Screen
 	case 1: {
 				cout << "State set to GAME_SCREEN." << endl;
+
 				_mGunnerTrans->removeChildren(0, _mGunnerTrans->getNumChildren());
 				//Create the crosshair and set to be child of mGunnerTrans
-				createBillboard(0.3, osg::Vec3f(0, 5, 0), "textures/crosshair.png", _mGunnerTrans);
+				createBillboard(0.3, osg::Vec3f(0, 5, 0.5), "textures/crosshair.png", _mGunnerTrans);
 
 				//Create a billboard representing the sun
-				createBillboard(100.0, osg::Vec3f(300, 300, 0), "textures/sun.png", _mNavTrans);
+				createBillboard(1000.0, osg::Vec3f(3000, 3000, 0), "textures/sol.png", _mNavTrans);
 				//Add player object and commandbridge model
 				_player = GameObject((std::string)("Spelaren"), osg::Vec3f(0, 0, 0), 5.1, (std::string)(""), _mPlayerTrans, _objIndex++);
-				_bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 5, -4), 0, (std::string)("models/plattbrygga_3.obj"), _mBridgeTrans, _objIndex++);
+				_bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, (std::string)("models/plattbrygga_3.obj"), _mBridgeTrans, _objIndex++);
 
 
-				//Fill scene with 50 asteroids. Later this should be moved to specific scene functions for each level.
+				//Fill scene with 50 asteroids.
 				for (int i = 0; i < 50; i++)
 				{
-					int rand1 = 50 - (_randomSeed * 263 + 71) % 100;
-					int rand2 = 50 - ((50 + rand1) * 263 + 71) % 100;
-					int rand3 = 50 - ((50 + rand2) * 263 + 71) % 100;
-					//int rand1 = 50 - (117 * (50 + _randomSeed) % 101); //generate random value between -50 and 50
-					//int rand2 = 50 - (117 * (50 + rand1) % 101); //generate new random value between -50 and 50
-					//int rand3 = 50 - (117 * (50 + rand2) % 101); //generate new random value between -50 and 50
-					_randomSeed = 50 + rand3;
-					
-					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 5.0f, (std::string)("models/asteroid_mindre.obj"), _mSceneTrans, _objIndex++));
+					int rand1 = 500 - (_randomSeed * 3571 + 997) % 1000;  //generate random value between -500 and 500
+					int rand2 = 500 - ((500 + rand1) * 3571 + 997) % 1000; //generate new random value between -500 and 500
+					int rand3 = 500 - ((500 + rand2) * 3571 + 997) % 1000; //Prime numbers are used to avoid repetitions.
+
+					_randomSeed = 500 + rand3;
+
+					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 50.0f, (std::string)("models/asteroid_1.ive"), _mSceneTrans, _objIndex++));
 				}
 
-				_soundManager.play("gameOver", osg::Vec3f(0.0f, 0.0f, 0.0f));
+				_soundManager.play("inGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+
 				_state = 1;
 	}
 		break;
@@ -64,6 +64,12 @@ void setGameState(int _state, int& _objIndex, GameObject _player, GameObject _br
 		//Gameover Screen
 	case 2: {
 				_state = 2;
+	}
+		break;
+	case 3: {
+				cout << "State set to PREGAME_SCREEN." << endl;
+				_soundManager.play("preGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+				_state = 3;
 	}
 		break;
 	}
@@ -111,7 +117,11 @@ void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 	osg::Billboard* theBillboard = new osg::Billboard();
 	_theTrans->addChild(theBillboard);
 
-	theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
+	//Follow cameras up-direction if the billboard is a crosshair.
+	if(_image == "textures/crosshair.png")
+		theBillboard->setMode(osg::Billboard::POINT_ROT_EYE);
+	else
+		theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
 	osg::Texture2D *billboardTexture = new osg::Texture2D;
 
 	billboardTexture->setImage(osgDB::readImageFile(_image));

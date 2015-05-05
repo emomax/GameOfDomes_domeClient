@@ -1,6 +1,8 @@
 #pragma once 
 #include "sgct.h"
 
+#include "Includes.h"
+
 #include <al.h>
 #include <alc.h>
 #include <iostream>
@@ -14,7 +16,7 @@ public:
 	virtual ~SoundManager();
 	void init();
 
-	void play(std::string score, glm::vec3 position);
+	void play(std::string score, osg::Vec3f position);
 	void stopMusic();
 	void pauseMusic(){}
 

@@ -73,13 +73,15 @@ void SoundManager::init() {
 }
 
 //! Plays the score parameter at given position vec3.
-void SoundManager::play(std::string score, glm::vec3 position) {
+void SoundManager::play(std::string score, osg::Vec3f position) {
 
 	// Convert position glm::vector to ALfloat::array for playback 
 	ALfloat soundPosition[3];
-	soundPosition[0] = position.x;
-	soundPosition[1] = position.y;
-	soundPosition[2] = position.z;
+	soundPosition[0] = position.x();
+	soundPosition[1] = position.y();
+	soundPosition[2] = position.z();
+
+	std::cout << soundPosition[0] << " " << position.y() << " " << position.z() << "score = " << score << std::endl;
 
 	if (score == "mainMenu_music") {
 		stopMusic();
@@ -90,6 +92,7 @@ void SoundManager::play(std::string score, glm::vec3 position) {
 		bgIsPlaying = true;
 	}
 	if (score == "preGame_music") {
+		std::cout << "playing preGame_music!" << std::endl;
 		stopMusic();
 		alSourcefv(preGameSource, AL_POSITION, soundPosition);
 		alSourcePlay(preGameSource);

@@ -22,7 +22,13 @@
 #include <osg/Texture2D>
 #include <osg/Billboard>
 #include <osg/LineWidth>
-
 #include <osg/BlendFunc>
+
+#include<string.h>
+#include<stdlib.h>
+#include<time.h>
+#include <fstream>
+
+
 
 const float PI = 3.14159265358979;

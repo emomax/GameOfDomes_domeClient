@@ -1,3 +1,5 @@
+#pragma once
+
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>

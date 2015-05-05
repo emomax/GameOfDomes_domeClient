@@ -10,7 +10,6 @@ EnemyShip::EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::str
 	setColRad(_colRad);
 	setHp(_hp);
 	translate(_pos);
-	//scale(0.01f);
 	setName(_name);
 	setDescr((std::string)("hej"));
 	_scene->addChild(getTrans());
@@ -25,6 +24,6 @@ void EnemyShip::updateAI(osg::Vec3f _playerPos)
 	tempQuat.makeRotate(getDir(), diffVec);
 	setDir(diffVec);
 	
-	translate(diffVec/diffVec.length()*0.05f);
+	translate(diffVec/diffVec.length()*0.5f);
 	rotate(tempQuat);
 }

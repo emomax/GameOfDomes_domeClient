@@ -18,13 +18,13 @@ public:
 	void setDir(osg::Vec3f _d) { direction = _d; }
 	void setOrientation(osg::Quat _q) { orientation = _q; }
 	void setPos(osg::Vec3f _pos) { pos = _pos; }
+	void setScale(float _s) { scale = _s; }
 	void translate(osg::Vec3f _t);
-	void setTrans(osg::ref_ptr<osg::MatrixTransform> _t) { transform = _t; }
 	void rotate(osg::Quat _q);
+	void setTrans(osg::ref_ptr<osg::MatrixTransform> _t) { transform = _t; }
 
 	void addChildModel(osg::ref_ptr<osg::Node> _m) { transform->addChild(_m); }
 	void removeChildModel(osg::ref_ptr<osg::Node> _m) { transform->removeChild(_m); }
-	void scale(float _s) { transform->postMult(osg::Matrix::scale(osg::Vec3f(_s, _s, _s))); }
 
 	void setName(std::string _n) { name = _n; }
 	void setDescr(std::string _d) { description = _d; }
@@ -38,6 +38,7 @@ private:
 		osg::Quat orientation;
 		osg::Vec3f pos = osg::Vec3f(0,0,0);
 		float velocity;
+		float scale = 1.0;
 
 		//The name variable is currently used for determining the type of the object, so it is important to follow 
 		//naming conventions. The current name types are: (case sensitive)

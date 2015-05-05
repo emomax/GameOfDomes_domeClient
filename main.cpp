@@ -72,7 +72,7 @@ sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool light(true);
 
 
-//State of the game. 0 = Welcome Screen. 1 = Game Screen. 2 = Gameover Screen.
+//State of the game. 0 = Welcome Screen. 1 = Game Screen. 2 = Gameover Screen. 3 = Pre-game Screen.
 //newState is used to let all nodes know which frame the state-change takes place. 
 sgct::SharedInt gameState(0);
 sgct::SharedBool newState(true);
@@ -89,6 +89,7 @@ float accThrustVal = 0.006;
 float accThrustMax = 0.4;
 float fireRate = 0.4;	//One bullet / 400ms
 float projectileVelocity = 120.0;
+float shakeVal = 2.5;
 
 float navigationSpeed = 0.0; // Current player speed
 float accRotX = 0.0, accRotY = 0.0, accRotZ = 0.0;	//rotational acceleration
@@ -263,7 +264,8 @@ int main(int argc, char* argv[])
 				>> trash >> accThrustVal
 				>> trash >> accThrustMax
 				>> trash >> fireRate
-				>> trash >> projectileVelocity;
+				>> trash >> projectileVelocity
+				>> trash >> shakeVal;
 	}
 	freader.close();
 
@@ -355,22 +357,24 @@ void myInitOGLFun()
 	mPlayerTrans->postMult(osg::Matrix::rotate(-PI / 2.0, 1.0, 0.0, 0.0));
 	mPlayerTrans->postMult(osg::Matrix::translate(0.0f, 0.0f, 2.0f));
 	mBridgeTrans->postMult(osg::Matrix::rotate(PI / 4.0, 1.0, 0.0, 0.0));
-	mBridgeTrans->postMult(osg::Matrix::translate(0.0f, 2.0f, 0.0f));
-	mBridgeTrans->postMult(osg::Matrix::scale(0.1, 0.1, 0.1));
+	mBridgeTrans->postMult(osg::Matrix::translate(0.0f, 6.0f, 2.0f));
 
 	//Setup the lightsource
 	setupLightSource();
 
 	//Play sound on startup. Move to welcome screen later?
-	soundManager.play("gameOver", osg::Vec3f(0.0f, 0.0f, 0.0f));
+	//soundManager.play("gameOver", osg::Vec3f(0.0f, 0.0f, 0.0f));
 
 }
-
+float x = 0;
 void myPreSyncFun()
 {
 	//The master node handle calculation of new values that will later be synced with all nodes
 	if (gEngine->isMaster())
 	{
+		//Update current time
+		curr_time.setVal(sgct::Engine::getTime());
+
 		switch (gameState.getVal()) {
 			//Welcome Screen
 			case 0: {
@@ -378,11 +382,14 @@ void myPreSyncFun()
 			}
 			break;
 
+			//Pre-game Screen
+			case 3: {
+			
+			}
+			break;
+
 			//Game Screen
 			case 1: {
-
-				//Update current time
-				curr_time.setVal(sgct::Engine::getTime());
 
 				// Update velocities based on SGCT key input 
 				if (Buttons[FORWARD] && navigationSpeed < 0.4)
@@ -481,7 +488,7 @@ void myPostSyncPreDrawFun()
 {
 	//setGameState is called for all nodes if newState is true
 	if (newState.getVal()) {
-		setGameState(gameState.getVal(), objIndex, player, bridge, objectList, mGunnerTrans, mPlayerTrans, mNavTrans, mBridgeTrans, mSceneTrans, soundManager, randomSeed.getVal());
+		setGameState(gameState.getVal(), objIndex, player, bridge, objectList, mGunnerTrans, mNavTrans, mPlayerTrans, mBridgeTrans, mSceneTrans, soundManager, randomSeed.getVal());
 		newState.setVal(false);
 	}
 
@@ -499,12 +506,12 @@ void myPostSyncPreDrawFun()
 			//Demotest. Spawn enemies every 3 second.
 			if (demoTime < 0.0)
 			{
-				int rand1 = 50 - (randomSeed.getVal() * 263 + 71) % 100;
-				int rand2 = 50 - ((50 + rand1) * 263 + 71) % 100;
-				int rand3 = 50 - ((50 + rand2) * 263 + 71) % 100;
-				randomSeed.setVal(rand3);
-				objectList.push_back(new EnemyShip((std::string)("Enemy"), osg::Vec3f(rand1, rand2, rand3), 5.0f, (std::string)("models/fiendeskepp16.ive"), mSceneTrans, 3, objIndex++));
-				demoTime = 3.0;
+				int rand1 = 500 - (randomSeed.getVal() * 3571 + 997) % 1000;
+				int rand2 = 500 - ((500 + rand1) * 3571 + 997) % 1000;
+				int rand3 = 500 - ((500 + rand2) * 3571 + 997) % 1000;
+				randomSeed.setVal(500 + rand3);
+				objectList.push_back(new EnemyShip((std::string)("Enemy"), osg::Vec3f(rand1, rand2, rand3), 25.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 3, objIndex++));
+				demoTime = 20.0;
 			}
 			demoTime -= gEngine->getDt();
 
@@ -639,12 +646,21 @@ void myPostSyncPreDrawFun()
 				//Generate new random seed
 				randomSeed.setVal(round(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)* 1000));
 
-				mNavTrans->preMult(osg::Matrix::rotate(2.5*gEngine->getDt(), rand1, rand2, 0));
+				mNavTrans->preMult(osg::Matrix::rotate(shakeVal*gEngine->getDt(), rand1, rand2, 0));
 				shakeTime -= gEngine->getDt();
 			}
 		}
 		break;
+	
+	//Pre-game Screen
+		case 3: {
+					if (curr_time.getVal() > 38){
+						gameState.setVal(0); //Welcome Screen
+						newState.setVal(true);
+					}
 
+		}
+		break;
 	}
 
 
@@ -670,7 +686,7 @@ void myDrawFun()
 {
 	glLineWidth(2.0f);
 
-	gEngine->setNearAndFarClippingPlanes(0.1f, 500.0f);
+	gEngine->setNearAndFarClippingPlanes(0.1f, 9000.0f);
 	const int * curr_vp = gEngine->getActiveViewportPixelCoords();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
 	mViewer->getCamera()->setProjectionMatrix(osg::Matrix(glm::value_ptr(gEngine->getActiveViewProjectionMatrix())));
@@ -847,9 +863,6 @@ void initOSG()
 	mViewer->getCamera()->setClearMask(tmpMask & (~(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));
 
 	mViewer->setSceneData(mRootNode.get());
-
-	// Init game by setting welcome screen
-	gameState.setVal(0);
 }
 
 void setupLightSource()

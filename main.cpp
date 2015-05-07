@@ -233,11 +233,11 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 			parameters->PutDouble("3", 0.343);
 			parameters->PutDouble("4", 0.523);
 
-			// find our room to send to.
-			boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
+			// DEPRECATED: find our room to send to.
+			//boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
 
 			// Perform extensionrequest
-			boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters, lastJoined));
+			boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters));
 			ptrMainFrame->m_ptrSmartFox->Send(extRequest);
 		}
 		else {

@@ -1,6 +1,7 @@
 RotationalAcceleration: 	0.01
-MaxRotationalAcceleration: 	0.8
-TrushAcceleration: 			0.012
-MaxThrustAcceleration: 		0.8
-FireRate(seconds/laser):	0.8
-ProjectileVelocity:			120
+MaxRotationalAcceleration: 	0.4
+TrushAcceleration: 			1.2
+MaxThrustAcceleration: 		80.0
+FireRate(seconds/laser):	0.4
+ProjectileVelocity:			12000
+ShakeVal:					2.5

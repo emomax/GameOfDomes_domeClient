@@ -17,7 +17,7 @@ public:
 	void setVel(float _v) { velocity = _v; }
 	void setDir(osg::Vec3f _d) { direction = _d; }
 	void setOrientation(osg::Quat _q) { orientation = _q; }
-	void setPos(osg::Vec3f _pos) { pos = _pos; }
+	void setPos(osg::Vec3f _pos) { pos = _pos; }	//setPos is rarely used directly since translate also sets a new position
 	void setScale(float _s) { scale = _s; }
 	void translate(osg::Vec3f _t);
 	void rotate(osg::Quat _q);

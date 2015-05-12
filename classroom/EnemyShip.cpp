@@ -24,6 +24,6 @@ void EnemyShip::updateAI(osg::Vec3f _playerPos)
 	tempQuat.makeRotate(getDir(), diffVec);
 	setDir(diffVec);
 	
-	translate(diffVec/diffVec.length()*0.5f);
+	translate(diffVec / diffVec.length()*0.5f);
 	rotate(tempQuat);
 }

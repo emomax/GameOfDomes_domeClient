@@ -13,8 +13,8 @@ void Object::translate(osg::Vec3f _t)
 	pos = pos + _t;
 	transform->setMatrix(osg::Matrix::identity());
 	transform->postMult(osg::Matrix::rotate(orientation));
-	transform->postMult(osg::Matrix::translate(pos*scale));
-	transform->postMult(osg::Matrix::scale(osg::Vec3f(scale, scale, scale)));
+	transform->postMult(osg::Matrix::translate(pos));
+	//transform->postMult(osg::Matrix::scale(osg::Vec3f(scale, scale, scale)));
 }
 
 void Object::rotate(osg::Quat _q)
@@ -22,6 +22,6 @@ void Object::rotate(osg::Quat _q)
 	orientation = orientation * _q;
 	transform->setMatrix(osg::Matrix::identity());
 	transform->postMult(osg::Matrix::rotate(orientation));
-	transform->postMult(osg::Matrix::translate(pos*scale));
-	transform->postMult(osg::Matrix::scale(osg::Vec3f(scale, scale, scale)));
+	transform->postMult(osg::Matrix::translate(pos));
+	//transform->postMult(osg::Matrix::scale(osg::Vec3f(scale, scale, scale)));
 }

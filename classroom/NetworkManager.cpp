@@ -76,30 +76,12 @@ void NetworkManager::OnSmartFoxConnection(unsigned long long ptrContext, boost::
 //! Function for handling possible disconnection from server.
 void NetworkManager::OnSmartFoxConnectionLost(unsigned long long ptrContext, boost::shared_ptr<BaseEvent> ptrEvent) {}
 
-//! What to do when a room is joined
+//! What to do when a room is joined. This functionality is at the moment disabled.
 void NetworkManager::OnSmartFoxRoomJoined(unsigned long long ptrContext, boost::shared_ptr<BaseEvent> ptrEvent) {
 
 	NetworkManager* ptrMainFrame = (NetworkManager*)ptrContext;
 
 	cout << "We successfully managed to join room." << endl;
-	/*cout << "Attempt to send int .." << endl;
-
-	// Send some garbage data just to see what happens
-	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
-	parameters->PutInt("rotX", 1);
-	parameters->PutInt("rotY", 0);
-	parameters->PutInt("thrust", 0);
-
-	// See what room we are in.
-	boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
-
-	// Perform extensionrequest
-	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("RequestTransform", parameters, lastJoined));
-	ptrMainFrame->m_ptrSmartFox->Send(extRequest);
-
-	cout << "Item sent!" << endl;*/
-
-
 }
 
 //! Says what to do once the server confirmed our login request. As of 0.0.1 it only sends a request for one of the server extensions.
@@ -109,15 +91,15 @@ void NetworkManager::OnSmartFoxLogin(unsigned long long ptrContext, boost::share
 	// do it
 
 	cout << "Successfully logged in!" << endl;
-	cout << "Attempting to join room 'The Lobby'.." << endl;
-
+	/*cout << "Attempting to join room 'The Lobby'.." << endl;
+	
 	// Convert a TCHAR string to a std string
 	boost::shared_ptr<string> ptrStdRoomName(new string("The Lobby"));
 
 	boost::shared_ptr<IRequest> request(new JoinRoomRequest(*ptrStdRoomName));
 	ptrMainFrame->m_ptrSmartFox->Send(request);
 
-	cout << "JoinRoom request sent!" << endl;
+	cout << "JoinRoom request sent!" << endl;*/
 
 	// NOTE: For now we settle with TCP transmitting. 
 	// It seems to be something wrong with the c++ api..
@@ -197,7 +179,7 @@ void NetworkManager::startBenchmarking() {
 	std::cout << "\n\nInitiating benchmarking..\n-----------------------" << endl;
 	std::cout << "Sending packets with 32 bytes of pure data." << endl;
 	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
-//	start = omp_get_wtime();
+	start = omp_get_wtime();
 
 	parameters->PutDouble("1", 0.923);
 	parameters->PutDouble("2", 0.953);
@@ -209,6 +191,21 @@ void NetworkManager::startBenchmarking() {
 
 	// Perform extensionrequest
 	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters, lastJoined));
+	m_ptrSmartFox->Send(extRequest);
+
+}
+
+//! Function to notify server that dome is still awake.
+void NetworkManager::alarm() {
+	// Create the object
+	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
+
+	// DEPRECATED Find the last joined room to easen things up for the server
+	//boost::shared_ptr<Room> lastJoined = m_ptrSmartFox->LastJoinedRoom();	
+	
+	// Create the extensionrequest
+	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("ImAwake", parameters));
+	// Send the motherpucker
 	m_ptrSmartFox->Send(extRequest);
 
 }

@@ -29,6 +29,7 @@ public:
 	void setName(std::string _n) { name = _n; }
 	void setDescr(std::string _d) { description = _d; }
 
+
 	virtual ~Object() {}
 
 private:
@@ -44,6 +45,7 @@ private:
 		//naming conventions. The current name types are: (case sensitive)
 		//	Asteroid
 		//	Enemy
+		//	Laser
 		std::string name;
 		std::string description;
 };

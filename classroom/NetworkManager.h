@@ -16,6 +16,7 @@ public:
 	void init();
 	void startBenchmarking();
 	void alarm();
+	void notifyStartGame();
 
 private:
 

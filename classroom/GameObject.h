@@ -44,6 +44,7 @@ public:
 
 private:
 	float rigidBodyRadius;
+	int hp;
 	osg::ref_ptr<osg::Node> model;
 
 	//Unique index for all objects in the scene. Used for comparison operator.

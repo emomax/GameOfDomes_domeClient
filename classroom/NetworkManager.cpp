@@ -209,3 +209,18 @@ void NetworkManager::alarm() {
 	m_ptrSmartFox->Send(extRequest);
 
 }
+
+//! Function to notify server that dome is still awake.
+void NetworkManager::notifyStartGame() {
+	// Create the object
+	boost::shared_ptr<ISFSObject> parameters(new SFSObject());
+
+	// DEPRECATED Find the last joined room to easen things up for the server
+	//boost::shared_ptr<Room> lastJoined = m_ptrSmartFox->LastJoinedRoom();	
+
+	// Create the extensionrequest
+	boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("StartGame", parameters));
+	// Send the motherpucker
+	m_ptrSmartFox->Send(extRequest);
+
+}

@@ -7,18 +7,17 @@ osgExample_sfs
 /* Custom items */
 #include "classroom\Includes.h"
 #include "classroom\Utilities.h"
-#include "classroom\SkyBox.h"
 #include "classroom\Projectile.h"
 #include "classroom\EnemyShip.h"
+#include "classroom\Player.h"
 #include "classroom\NetworkManager.h"
 #include "classroom\SoundManager.h"
 
 //Engine handling everything SGCT-related
 sgct::Engine * gEngine;
 
-//Not using ref pointers enables
-//more controlled termination
-//and prevents segfault on Linux
+//Not using ref pointers enables more controlled
+//termination and prevents segfault on Linux
 osgViewer::Viewer * mViewer;
 
 //Scene transforms. mRootNode is used by our osgViewer. The others are children of mRootNode.
@@ -26,9 +25,9 @@ osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mRootTrans;
 osg::ref_ptr<osg::MatrixTransform> mNavTrans;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
-osg::ref_ptr<osg::MatrixTransform> mPlayerTrans;
-osg::ref_ptr<osg::MatrixTransform> mGunnerTrans;
-osg::ref_ptr<osg::MatrixTransform> mBridgeTrans;
+
+//Player object to handle player position, hp, pilot and gunner transforms etc.
+Player player;
 
 
 osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster
@@ -52,7 +51,7 @@ void setupLightSource();
 sgct::SharedFloat curr_time(0.0);			//Current game time
 
 sgct::SharedFloat playerPosX(0.0);	//Initialize player vector and quaternions. SGCT and SFS does
-sgct::SharedFloat playerPosY(-50.0);	//not seem to like shared arrays, so every value is saved individually.
+sgct::SharedFloat playerPosY(-50.0);	//not like shared arrays, so every value is saved individually.
 sgct::SharedFloat playerPosZ(0.0);
 sgct::SharedFloat baseQuatX(0.0);			//X = yaw, Y = roll, Z = pitch, W = angle. (quaternion)
 sgct::SharedFloat baseQuatY(0.0);
@@ -74,7 +73,7 @@ sgct::SharedBool light(true);
 
 
 //State of the game. 0 = Welcome Screen. 1 = Game Screen. 2 = Gameover Screen. 3 = Pre-game Screen.
-//newState is used to let all nodes know which frame the state-change takes place.
+//newState is used to let all nodes know which frame the state-change takes place. 
 sgct::SharedInt gameState(0);
 sgct::SharedBool newState(true);
 
@@ -112,9 +111,6 @@ int objIndex = 0;
 
 float demoTime = 5.0;
 
-//Position and direction variables for the player
-osg::Vec3f player_pos = osg::Vec3f(playerPosX.getVal(), playerPosY.getVal(), playerPosZ.getVal());
-
 //(0, forward_dir)
 osg::Quat baseQuat = osg::Quat(0, 0, 1, 0);
 osg::Quat gunnerQuat = osg::Quat(0, 0, 0, 1);
@@ -131,10 +127,6 @@ std::list<Projectile> missiles;
 
 //vector containing all objects (asteroids, enemies, etc.) in the scene
 std::list<GameObject*> objectList;
-
-
-GameObject player;
-GameObject bridge;
 
 
 // Manage sound handling
@@ -208,7 +200,7 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 		eInputEngine = ( (float)(*(ptrNotifiedISFSObject->GetFloat("sgctEngine"))) * 3 + 0.5);
 		eInputShield = ( (float)(*(ptrNotifiedISFSObject->GetFloat("sgctShield"))) + 0.5);
 		eInputTurret = ( (float)(*(ptrNotifiedISFSObject->GetFloat("sgctTurret"))) + 0.5);
-
+		
 	}
 	if (*ptrNotifiedCmd == "BenchMarking") {
 
@@ -224,7 +216,7 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 		std::cout << "Reply from server, " << static_cast<int>((end - start) * 1000) << "ms." << endl;
 
 		start = omp_get_wtime();
-		// send new item
+		// send new item 
 		if (itemsSent++ < 35 && benchmarkingStarted) {
 			boost::shared_ptr<ISFSObject> parameters(new SFSObject());
 
@@ -233,11 +225,11 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 			parameters->PutDouble("3", 0.343);
 			parameters->PutDouble("4", 0.523);
 
-			// DEPRECATED: find our room to send to.
-			//boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
+			// find our room to send to.
+			boost::shared_ptr<Room> lastJoined = ptrMainFrame->m_ptrSmartFox->LastJoinedRoom();
 
 			// Perform extensionrequest
-			boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters));
+			boost::shared_ptr<IRequest> extRequest(new ExtensionRequest("BenchMarking", parameters, lastJoined));
 			ptrMainFrame->m_ptrSmartFox->Send(extRequest);
 		}
 		else {
@@ -308,10 +300,10 @@ int main(int argc, char* argv[])
 	exit(EXIT_SUCCESS);
 }
 
+
 /*!
 * SGCT - Initialize OpenGL
 */
-
 void myInitOGLFun()
 {
 	//Setup OSG scene graph and viewer.
@@ -323,53 +315,25 @@ void myInitOGLFun()
 		randomSeed.setVal(round(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)* 1000));
 	}
 
-	//Skybox code needs to be cleaned up
-	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	geode->addDrawable(new osg::ShapeDrawable(
-		new osg::Sphere(osg::Vec3(), 150)));  //scene->getBound().radius())));
-	geode->setCullingActive(false);
-	osg::ref_ptr<SkyBox> skybox = new SkyBox;
-	skybox->getOrCreateStateSet()->setTextureAttributeAndModes(0, new osg::TexGen);
-	skybox->setEnvironmentMap(0,
-		osgDB::readImageFile("textures/skybox_biggerRT.png"), osgDB::readImageFile("textures/skybox_biggerLF.png"),
-		osgDB::readImageFile("textures/skybox_biggerDN.png"), osgDB::readImageFile("textures/skybox_biggerUP.png"),
-		osgDB::readImageFile("textures/skybox_biggerFT.png"), osgDB::readImageFile("textures/skybox_biggerBK.png"));
-	skybox->addChild(geode.get());
-
 	//Initialize scene graph transforms. mRootNode is initialized in the InitOSG() function
 	mRootTrans = new osg::MatrixTransform();
 	mNavTrans = new osg::MatrixTransform();
 	mSceneTrans = new osg::MatrixTransform();
-	mPlayerTrans = new osg::MatrixTransform();
-	mGunnerTrans = new osg::MatrixTransform();
-	mBridgeTrans = new osg::MatrixTransform();
-	mPlayerTrans->setMatrix(osg::Matrix::identity());
-	mBridgeTrans->setMatrix(osg::Matrix::identity());
+
 	
 	//Setup the scene graph
 	mRootNode->addChild(mRootTrans);
-	mRootTrans->addChild(mPlayerTrans);
 	mRootTrans->addChild(mNavTrans);
 	mNavTrans->addChild(mSceneTrans);
-	mNavTrans->addChild(skybox);
-	mPlayerTrans->addChild(mGunnerTrans);
-	mPlayerTrans->addChild(mBridgeTrans);
 
-	//Apply static rotation to compensate for OSG-SGCT and to transform commandbridge correctly
+	//Transform to scene transformation from configuration file and apply static rotation to compensate for OSG-SGCT
 	mRootTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
 	mRootTrans->postMult(osg::Matrix::rotate(-PI / 2.0, 1.0, 0.0, 0.0));
-	mBridgeTrans->postMult(osg::Matrix::rotate(PI + PI / 4.0, 1.0, 0.0, 0.0));
-	mBridgeTrans->postMult(osg::Matrix::translate(0.0f, 100.0f, 0.0f));
 
 
 	//Setup the lightsource
 	setupLightSource();
-
-	//Play sound on startup. Move to welcome screen later?
-	//soundManager.play("gameOver", osg::Vec3f(0.0f, 0.0f, 0.0f));
-
 }
-
 float x = 0;
 double checkIfImAwake = 100;
 
@@ -381,10 +345,10 @@ void myPreSyncFun()
 		//Update current time
 		curr_time.setVal(sgct::Engine::getTime());
 
-        if (checkIfImAwake < curr_time.getVal()) {
+		if (checkIfImAwake < curr_time.getVal()) {
 			manager.alarm();
 			checkIfImAwake += 100;
-        }
+		}
 
 		switch (gameState.getVal()) {
 			//Welcome Screen
@@ -395,18 +359,18 @@ void myPreSyncFun()
 
 			//Pre-game Screen
 			case 3: {
-
+			
 			}
 			break;
 
 			//Game Screen
 			case 1: {
 
-				// Update velocities based on SGCT key input
-				if (Buttons[FORWARD] && navigationSpeed < 0.4)
-					navigationSpeed += 0.60;
-				if (Buttons[BACKWARD] && navigationSpeed > -0.4)
-					navigationSpeed -= 0.60;
+				// Update velocities based on SGCT key input 
+				if (Buttons[FORWARD] && navigationSpeed < accThrustMax)
+					navigationSpeed += accThrustVal;
+				if (Buttons[BACKWARD] && navigationSpeed > -accThrustMax)
+					navigationSpeed -= accThrustVal;
 				if (Buttons[LEFT])
 					accRotZ -= accRotVal;
 				if (Buttons[RIGHT])
@@ -432,20 +396,18 @@ void myPreSyncFun()
 
 
 				//Update pilot values. Energy loss is used for retardation of the ship.
-				navigationSpeed = navigationSpeed * 0.90;
-
+				navigationSpeed = navigationSpeed * 0.97; 
 				accRotX = accRotX*0.97;
 				accRotY = accRotY*0.97;
 				accRotZ = accRotZ*0.97;
 				gInputRotX = gInputRotX * 0.70;
 				gInputRotY = gInputRotY * 0.70;
 
-
 				//Get new forward direction and player position.
 				//Transformations are inversed because world moves relative to the camera.
 				osg_forward_dir = baseQuat * osg::Vec3f(0, -1, 0);
 				osg_up_dir = baseQuat * osg::Vec3f(0, 0, -1);
-				player_pos -= osg_forward_dir * navigationSpeed;	//Minus for inverse navigation
+				player.setPos(player.getPos() - osg_forward_dir * navigationSpeed);	//Minus for inverse navigation
 
 				gunner_side = gunnerQuat * osg::Vec3f(1, 0, 0);
 				gunner_up = gunnerQuat * osg::Vec3f(0, 0, 1);
@@ -493,9 +455,9 @@ void myPreSyncFun()
 						gunnerQuat = gunnerQuat * osg::Quat(0.05 * gEngine->getDt(), osg::Vec3(1, 0, 0));
 				
 				//Sync values with all nodes
-				playerPosX.setVal(player_pos.x());
-				playerPosY.setVal(player_pos.y());
-				playerPosZ.setVal(player_pos.z());
+				playerPosX.setVal(player.getPos().x());
+				playerPosY.setVal(player.getPos().y());
+				playerPosZ.setVal(player.getPos().z());
 				baseQuatX.setVal(baseQuat.x());
 				baseQuatY.setVal(baseQuat.y());
 				baseQuatZ.setVal(baseQuat.z());
@@ -515,7 +477,7 @@ void myPostSyncPreDrawFun()
 {
 	//setGameState is called for all nodes if newState is true
 	if (newState.getVal()) {
-		setGameState(gameState.getVal(), objIndex, player, bridge, objectList, mGunnerTrans, mNavTrans, mPlayerTrans, mBridgeTrans, mSceneTrans, soundManager, randomSeed.getVal());
+		setGameState(gameState.getVal(), objIndex, objectList, player, mNavTrans, mRootTrans, mSceneTrans, soundManager, randomSeed.getVal());
 		newState.setVal(false);
 	}
 	
@@ -523,7 +485,7 @@ void myPostSyncPreDrawFun()
 	switch (gameState.getVal()) {
 	//Welcome Screen
 		case 0: {
-			// DO NOTHING FOR NOW. MAYBE SHOW BILLBOARD
+			// DO NOTHING FOR NOW. MAYBE SHOW BILLBOARD 
 		}
 		break;
 
@@ -539,6 +501,7 @@ void myPostSyncPreDrawFun()
 				randomSeed.setVal(5000 + rand3);
 				objectList.push_back(new EnemyShip((std::string)("Enemy"), osg::Vec3f(rand1, rand2, rand3), 250.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 3, objIndex++));
 				demoTime = 10.0;
+				cout << "Enemy Spawned" << endl;
 			}
 			demoTime -= gEngine->getDt();
 
@@ -547,8 +510,8 @@ void myPostSyncPreDrawFun()
 				//Add and then sort new projectiles in the missile vector.
 				osg::Vec3f tempVec = (gunnerQuat * baseQuat) * osg::Vec3f(0, 1, 0);
 				osg::Quat tempDir = gunnerQuat * baseQuat;
-				missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(200, 0, -100), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
-				missiles.push_back(Projectile((std::string)("ettskott"), player_pos + baseQuat * osg::Vec3f(-200, 0, -100), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
+				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200, 0, -100), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
+				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200, 0, -100), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
 				fireSync.setVal(false);
 			}
 
@@ -565,7 +528,7 @@ void myPostSyncPreDrawFun()
 			//Sync updated quaternions and vector
 			baseQuat = osg::Quat(baseQuatX.getVal(), baseQuatY.getVal(), baseQuatZ.getVal(), baseQuatW.getVal());
 			gunnerQuat = osg::Quat(gunnerQuatX.getVal(), gunnerQuatY.getVal(), gunnerQuatZ.getVal(), gunnerQuatW.getVal());
-			player_pos = osg::Vec3f(playerPosX.getVal(), playerPosY.getVal(), playerPosZ.getVal());
+			player.setPos(osg::Vec3f(playerPosX.getVal(), playerPosY.getVal(), playerPosZ.getVal()));
 
 
 		//Perform matrix transformations
@@ -573,27 +536,14 @@ void myPostSyncPreDrawFun()
 			//Player translation and rotation
 			mNavTrans->setMatrix(osg::Matrix::identity());
 
-			//Rotate osg coordinate system to match sgct
-			//mNavTrans->postMult(osg::Matrix::rotate(-PI / 2.0 + 27 * PI / 180, 1.0, 0.0, 0.0));
-			/*mNavTrans->preMult(osg::Matrix::rotate(-PI / 2, 1.0f, 0.0f, 0.0f));*/
-
-			//Apply static translation to center camera position
-			//mNavTrans->preMult(osg::Matrix::translate(0.0f, 0.0f, -4.0f));
-
 			mNavTrans->postMult(osg::Matrix::rotate(baseQuat));
-			mNavTrans->postMult(osg::Matrix::translate(player_pos));
+			mNavTrans->postMult(osg::Matrix::translate(player.getPos()));
 			mNavTrans->setMatrix(mNavTrans->getInverseMatrix());
-
-
+			
 			//Gunner rotation
-			mGunnerTrans->setMatrix(osg::Matrix::identity());
-			mGunnerTrans->postMult(osg::Matrix::rotate(gunnerQuat));
+			player.rotateGunnerTrans(gunnerQuat);
 
-
-			//Transform to scene transformation from configuration file
-			//mSceneTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
-
-
+			
 		//Collision handling. This should probably get moved into its own class
 
 			//Move, remove and check collisions for missiles.
@@ -614,13 +564,13 @@ void myPostSyncPreDrawFun()
 
 
 					//Collision check with player
-					if ((mIterator->getPos() - player_pos).length() < mIterator->getColRad() /*+ player->getColRad()*/)
-					{
-						mIterator->removeChildModel(mIterator->getModel()); cout << "missile collided with player\n";
-						missiles.erase(mIterator);
-						shakeTime = 0.5;
-						goto stop;		//break all current loops. stop is located directly after the collision handling loops.
-					}
+					//if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() /*+ player->getColRad()*/)
+					//{
+					//	mIterator->removeChildModel(mIterator->getModel()); cout << "missile collided with player\n";
+					//	missiles.erase(mIterator);
+					//	shakeTime = 0.5;
+					//	goto stop;		//break all current loops. stop is located directly after the collision handling loops.
+					//}
 
 					//Collision check with objects in the scene
 					for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
@@ -629,8 +579,8 @@ void myPostSyncPreDrawFun()
 						{
 							mIterator->removeChildModel(mIterator->getModel());	cout << "missile collided with object\n";
 							(*oIterator)->removeChildModel((*oIterator)->getModel());
-
-							soundManager.play("explosion", player_pos  - (*oIterator)->getPos());
+							
+							soundManager.play("explosion", player.getPos()  - (*oIterator)->getPos());
 
 							missiles.erase(mIterator);
 							objectList.erase(oIterator);
@@ -645,7 +595,7 @@ void myPostSyncPreDrawFun()
 			for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
 			{
 				//lägg till spelarens kollisionsradie...
-				if ((player_pos - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
+				if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
 				{
 					soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
 					(*oIterator)->removeChildModel((*oIterator)->getModel());
@@ -657,7 +607,7 @@ void myPostSyncPreDrawFun()
 
 				if ((*oIterator)->getName() == "Enemy")
 				{
-					(*oIterator)->updateAI(player_pos);
+					(*oIterator)->updateAI(player.getPos());
 				}
 
 			}
@@ -687,7 +637,7 @@ void myPostSyncPreDrawFun()
 			}
 		}
 		break;
-
+	
 	//Pre-game Screen
 		case 3: {
 					if (curr_time.getVal() > 38){
@@ -722,7 +672,7 @@ void myDrawFun()
 {
 	glLineWidth(2.0f);
 
-	gEngine->setNearAndFarClippingPlanes(0.1f, 9000.0f);
+	gEngine->setNearAndFarClippingPlanes(0.1f, 100000.0f);
 	const int * curr_vp = gEngine->getActiveViewportPixelCoords();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
 	mViewer->getCamera()->setProjectionMatrix(osg::Matrix(glm::value_ptr(gEngine->getActiveViewProjectionMatrix())));
@@ -910,16 +860,16 @@ void setupLightSource()
 
 	light0->setLightNum(0);
 	light0->setPosition(osg::Vec4(150.0f, 150.0f, 0.0f, 1.0f));
-	light0->setAmbient(osg::Vec4(0.3f, 0.3f, 0.3f, 1.0f));
+	light0->setAmbient(osg::Vec4(0.5f, 0.5f, 0.5f, 1.0f));
 	light0->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.8f, 1.0f));
 	light0->setSpecular(osg::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	light0->setConstantAttenuation(1.0f);
 
-	lightSource0->setLight(light0);
+	lightSource0->setLight(light0);	//Static light
 	lightSource0->setLocalStateSetModes(osg::StateAttribute::ON);
 	lightSource0->setStateSetModes(*(mRootNode->getOrCreateStateSet()), osg::StateAttribute::ON);
 
-	light1->setLightNum(1);
+	light1->setLightNum(1);	//Moves with player
 	light1->setPosition(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	light1->setAmbient(osg::Vec4(0.4f, 0.4f, 0.4f, 1.0f));
 	light1->setDiffuse(osg::Vec4(0.5f, 0.5f, 0.5f, 1.0f));

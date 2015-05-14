@@ -23,6 +23,7 @@
 #include <osg/Billboard>
 #include <osg/LineWidth>
 #include <osg/BlendFunc>
+#include <osg/ImageSequence>
 
 #include<string.h>
 #include<stdlib.h>

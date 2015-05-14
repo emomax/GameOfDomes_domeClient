@@ -15,6 +15,7 @@ Utilities.h contains useful functions that the program uses.
 //Function declarations
 void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height);
 void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans);
+void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height);
 
 
 //Function for changing level. the list containing all objects and the relevant matrix transforms are called as reference. Note that the matrix transforms are pointers.
@@ -50,6 +51,7 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 				//_mGunnerTrans->removeChildren(0, _mGunnerTrans->getNumChildren());
 				//Create the crosshair and set to be child of mGunnerTrans
 				createBillboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0);
+				
 
 				//Create a billboard representing the sun
 				createBillboard(80000.0, osg::Vec3f(80000, 0, 0), "textures/sol.png", _mSceneTrans, 1.0, 1.0);
@@ -75,7 +77,7 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 					_objList.back()->rotate(osg::Quat(_randomSeed, rand1, rand2, rand3));
 					std::cout << _objList.back()->getName() << _objList.back()->getID() << std::endl;
 				}
-
+				createExplosion(1.0, osg::Vec3f(0, 3, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 3.0, 3.0);
 				_soundManager.play("inGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 
 				_state = 1;
@@ -99,16 +101,6 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 
 //Billboard functions
-
-/**
-* Max fiddeli-doodely with animatable billboards
-*//
-
-
-
-/**
-* Max ending of fiddeli-doodely with animatable billboards
-*/
 
 #pragma once
 osg::Drawable* createBillboardDrawable(const float & scale, osg::StateSet* bbState, float width, float height)
@@ -171,10 +163,84 @@ void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 	billboardDrawable = createBillboardDrawable(_scale, billBoardStateSet, _width, _height);
 
 	theBillboard->addDrawable(billboardDrawable, _pos);
+}
+
+/**
+* Max fiddeli-doodely with animatable billboards
+*/
+
+void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height)
+{
+
+	osg::Billboard* theBillboard = new osg::Billboard();
+	_theTrans->addChild(theBillboard);
+
+	//Follow cameras up-direction if the billboard is a crosshair.
+	if (_image == "textures/crosshair.png")
+		theBillboard->setMode(osg::Billboard::POINT_ROT_EYE);
+	else
+		theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
+	osg::Texture2D *billboardTexture = new osg::Texture2D;
+
+	// CREATE ANIMATION SEQUENCE
+	osg::ref_ptr<osg::ImageSequence> imageSequence = new osg::ImageSequence;
+
+	imageSequence->setLength(1.2);
+
+	// load images
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00001.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00002.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00003.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00004.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00005.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00006.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00007.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00008.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00009.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00010.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00011.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00012.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00013.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00014.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00015.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00016.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00017.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00018.png"));
+	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00019.png"));
+
+	//imageSequence->setLoopingMode(osg::ImageStream::NO_LOOPING);
+	imageSequence->play();
+
+	// set the sequence for playing.
+	billboardTexture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
+	billboardTexture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+	billboardTexture->setImage(imageSequence.get());
+
+	osg::StateSet* billBoardStateSet = new osg::StateSet;
+	billBoardStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	billBoardStateSet->setTextureAttributeAndModes(0, billboardTexture, osg::StateAttribute::ON);
+
+	billBoardStateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+	billBoardStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// Enable depth test so that an opaque polygon will occlude a transparent one behind it.
+	billBoardStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+	osg::BlendFunc* bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
+	billBoardStateSet->setAttributeAndModes(bf, osg::StateAttribute::ON);
+
+	osg::Drawable* billboardAnimatable;
+	billboardAnimatable = createBillboardDrawable(_scale, billBoardStateSet, _width, _height);
+
+	theBillboard->addDrawable(billboardAnimatable, _pos);
 
 
 }
 
+
+/**
+* Max ending of fiddeli-doodely with animatable billboards
+*/
 
 //! Function for setting up skybox. Takes a shared pointer to the transform node.
 void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans)

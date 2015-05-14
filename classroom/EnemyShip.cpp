@@ -5,7 +5,8 @@ EnemyShip::EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::str
 {
 	initTransform();
 	setVel(0.0);
-	setDir(osg::Vec3f(0.0f, 0.0f, 1.0f));
+	setDir(osg::Vec3f(0.0f, 0.0f, 1.0f));	//Not used
+	upDir = osg::Vec3f(0.0f, 0.0, 1.0f);
 	setOrientation(osg::Quat(0.0f, 0.0f, 1.0f, 0.0f));
 	setColRad(_colRad);
 	setHp(_hp);
@@ -15,15 +16,29 @@ EnemyShip::EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::str
 	_scene->addChild(getTrans());
 	setID(_id);
 	setModel(_model);
+
+	attackCooldown = 10;
+	homingMissileAttackCooldown = 40;
 }
 
-void EnemyShip::updateAI(osg::Vec3f _playerPos)
+void EnemyShip::updateAI(osg::Vec3f _playerPos, std::list<Projectile>& _missiles, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, float _dt)
 {
 	osg::Vec3f diffVec = _playerPos - getPos();
-	osg::Quat tempQuat;
+	osg::Quat tempQuat = getOrientation();
 	tempQuat.makeRotate(getDir(), diffVec);
-	setDir(diffVec);
+	setDir(diffVec / diffVec.length());
 	
-	translate(diffVec / diffVec.length()*5.0f);
+	translate(getDir()*5.0f);
 	rotate(tempQuat);
+
+	tempQuat = getOrientation();
+	upDir = tempQuat * osg::Vec3f(0.0, 1.0, 0.0);
+	tempQuat.makeRotate(upDir, -getDir());
+	
+	if (attackCooldown <= 0.0) {
+		_missiles.push_back(Projectile((std::string)("Laser"), getPos() + tempQuat * osg::Vec3f(0.0, 300.0, 0.0), getDir(), tempQuat, (std::string)("models/skott20m.obj"), _mSceneTrans, 1.0f, 4000));
+		attackCooldown = 8.0;
+	}
+	else
+		attackCooldown -= _dt;
 }

@@ -21,7 +21,7 @@ void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 //Function for changing level. the list containing all objects and the relevant matrix transforms are called as reference. Note that the matrix transforms are pointers.
 void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, Player& _player, osg::ref_ptr<osg::MatrixTransform> _mNavTrans, 
 	osg::ref_ptr<osg::MatrixTransform> _mRootTrans, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, osg::ref_ptr<osg::MatrixTransform> _mWelcomeTrans,
-	SoundManager& _soundManager, int _randomSeed)
+	SoundManager& _soundManager, int _randomSeed, int _asteroidAmount)
 {
 
 	switch (_state) {
@@ -61,23 +61,22 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 
 				//Fill scene with 50 asteroids.
-				for (int i = 0; i < 50; i++)
+				for (int i = 0; i < _asteroidAmount; i++)
 				{
-					int rand1 = 5000 - (_randomSeed * 3571 + 997) % 10000;  //generate random value between -5000 and 5000
-					int rand2 = 5000 - ((5000 + rand1) * 3571 + 997) % 10000; //generate new random value between -5000 and 5000
-					int rand3 = 5000 - ((5000 + rand2) * 3571 + 997) % 10000; //Prime numbers are used to avoid repetitions.
+					int rand1 = 50000 - (_randomSeed * 3571 + 997) % 100000;  //generate random value between -5000 and 5000
+					int rand2 = 50000 - ((50000 + rand1) * 3571 + 997) % 100000; //generate new random value between -5000 and 5000
+					int rand3 = 50000 - ((50000 + rand2) * 3571 + 997) % 100000; //Prime numbers are used to avoid repetitions.
 					std::cout << rand1 << " " << rand2 << " " << rand3 << std::endl;
 					//float randScale = 1.2 - (float)(((500 + rand3) * 3571 + 997) % 400) / 1000; //generate random value between 0.8 - 1.2
 					//randScale *= 10;
 
-					_randomSeed = 5000 + rand3;
+					_randomSeed = 50000 + rand3;
 
-					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(0, 100, 0), 10.0f, (std::string)("models/kurvbrygga.ive"), _mSceneTrans, _objIndex++));
+					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 2500.0f, (std::string)("models/asteroid_5meter.ive"), _mSceneTrans, _objIndex++));
 					//_objList.back()->setScale(randScale);						//pos variable need to take the scale into account. Save for later.
 					_objList.back()->rotate(osg::Quat(_randomSeed, rand1, rand2, rand3));
 					std::cout << _objList.back()->getName() << _objList.back()->getID() << std::endl;
 				}
-				createExplosion(1.0, osg::Vec3f(0, 3, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 3.0, 3.0);
 				_soundManager.play("inGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 
 				_state = 1;
@@ -186,7 +185,6 @@ void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 	osg::ref_ptr<osg::ImageSequence> imageSequence = new osg::ImageSequence;
 
 	imageSequence->setLength(1.2);
-
 	// load images
 	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00001.png"));
 	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00002.png"));

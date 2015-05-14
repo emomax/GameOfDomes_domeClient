@@ -98,6 +98,9 @@ float rotX = 0.0,	 rotY = 0.0,	rotZ = 0.0;		//rotational velocity
 float accThrust = 0.0;
 float fireTimer = 0.0;
 float shakeTime = 0.0;
+int asteroidAmount = 1;
+float lightval = 0.8;
+bool domtest = false;
 
 double gInputRotX = 0.0, gInputRotY = 0.0;
 double pInputRotX = 0.0, pInputRotY = 0.0, pInputRotZ = 0.0;
@@ -258,10 +261,12 @@ int main(int argc, char* argv[])
 				>> trash >> accThrustMax
 				>> trash >> fireRate
 				>> trash >> projectileVelocity
-				>> trash >> shakeVal;
+				>> trash >> shakeVal
+				>> trash >> asteroidAmount
+				>> trash >> lightval
+				>> trash >> domtest;
 	}
 	freader.close();
-
 
 	//SGCT setup
 	gEngine = new sgct::Engine(argc, argv);
@@ -444,19 +449,25 @@ void myPreSyncFun()
 				osg::Vec3f tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
 				float angle = acos(tempVec*osg::Vec3f(0, 1, 0));
 
-				//Limit gunner crosshair to 1.2 radians from center
-				if (angle > 1.2) {
-					osg::Vec3f tempVec2 = tempVec^osg::Vec3f(0, 1, 0);
-					gunnerQuat = gunnerQuat * osg::Quat((0.01 + sqrt(pow(gInputRotX, 2) + pow(gInputRotY, 2))) * gEngine->getDt(), tempVec2);
-				}
-				
+				if (domtest) {
+					//Limit gunner crosshair to 1.2 radians from center and to positive z
+					if (angle > 1.2) {
+						osg::Vec3f tempVec2 = tempVec^osg::Vec3f(0, 1, 0);
+						gunnerQuat = gunnerQuat * osg::Quat((sqrt(pow(gInputRotX, 2) + pow(gInputRotY, 2))) * gEngine->getDt(), tempVec2);
+					}
 					gunnerQuat = gunnerQuat * gRX.conj();
+
 					if (tempVec.z() > 0.0) {
 						gunnerQuat = gunnerQuat * gRZ.conj();
 					}
 					else
 						gunnerQuat = gunnerQuat * osg::Quat(0.05 * gEngine->getDt(), osg::Vec3(1, 0, 0));
-				
+				}
+				else {
+					gunnerQuat = gunnerQuat * gRZ.conj();
+					gunnerQuat = gunnerQuat * gRX.conj();
+				}
+
 				//Sync values with all nodes
 				playerPosX.setVal(player.getPos().x());
 				playerPosY.setVal(player.getPos().y());
@@ -480,9 +491,10 @@ void myPostSyncPreDrawFun()
 {
 	//setGameState is called for all nodes if newState is true
 	if (newState.getVal()) {
-		setGameState(gameState.getVal(), objIndex, objectList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal());
+		setGameState(gameState.getVal(), objIndex, objectList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal(), asteroidAmount);
 		newState.setVal(false);
 	}
+	
 
 	switch (gameState.getVal()) {
 	//Welcome Screen
@@ -502,9 +514,8 @@ void myPostSyncPreDrawFun()
 				int rand2 = 5000 - ((5000 + rand1) * 3571 + 997) % 10000;
 				int rand3 = 5000 - ((5000 + rand2) * 3571 + 997) % 10000;
 				randomSeed.setVal(5000 + rand3);
-				objectList.push_back(new EnemyShip((std::string)("Enemy"), player.getPos() + osg::Vec3f(rand1, rand2, rand3), 250.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 3, objIndex++));
+				objectList.push_back(new EnemyShip((std::string)("Enemy"), player.getPos() + osg::Vec3f((float)rand1, (float)rand2, (float)rand3), 250.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 3, objIndex++));
 				demoTime = 10.0;
-				cout << "Enemy Spawned" << endl;
 			}
 			demoTime -= gEngine->getDt();
 
@@ -513,8 +524,8 @@ void myPostSyncPreDrawFun()
 				//Add and then sort new projectiles in the missile vector.
 				osg::Vec3f tempVec = (gunnerQuat * baseQuat) * osg::Vec3f(0, 1, 0);
 				osg::Quat tempDir = gunnerQuat * baseQuat;
-				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200, 0, -100), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
-				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200, 0, -100), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
+				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200.0, 0.0, -100.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
+				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200.0, 0.0, -100.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
 				fireSync.setVal(false);
 			}
 
@@ -557,7 +568,7 @@ void myPostSyncPreDrawFun()
 				if (mIterator->getLifeTime() < 0.0f)
 				{
 					//Remove from scene graph before deleting the object
-					mIterator->removeChildModel(mIterator->getModel()); cout << "missile lifetime ended\n";
+					mIterator->removeChildModel(mIterator->getModel());
 					missiles.erase(mIterator);
 					goto stop;
 				}
@@ -567,9 +578,9 @@ void myPostSyncPreDrawFun()
 
 
 					//Collision check with player
-					if (abs((mIterator->getPos() - player.getPos()).length()) < mIterator->getColRad() /*+ player->getColRad()*/)
+					if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() /*+ player->getColRad()*/)
 					{
-						mIterator->removeChildModel(mIterator->getModel()); cout << "missile collided with player\n";
+						mIterator->removeChildModel(mIterator->getModel());
 						missiles.erase(mIterator);
 						shakeTime = 0.5;
 						goto stop;		//break all current loops. stop is located directly after the collision handling loops.
@@ -578,12 +589,13 @@ void myPostSyncPreDrawFun()
 					//Collision check with objects in the scene
 					for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
 					{
-						cout << abs((mIterator->getPos() - (*oIterator)->getPos()).length()) << "\n";
-						if (abs((mIterator->getPos() - (*oIterator)->getPos()).length()) < mIterator->getColRad() + (*oIterator)->getColRad())
+						if ((mIterator->getPos() - (*oIterator)->getPos()).length() < mIterator->getColRad() + (*oIterator)->getColRad())
 						{
-							mIterator->removeChildModel(mIterator->getModel());	cout << "missile collided with object\n";
+							mIterator->removeChildModel(mIterator->getModel());
 							(*oIterator)->removeChildModel((*oIterator)->getModel());
 							
+
+							if (domtest) createExplosion(500.0, (*oIterator)->getPos() - player.getPos(), "textures/dome_startscreen.png", mSceneTrans, 3.0, 3.0);
 							soundManager.play("explosion", player.getPos()  - (*oIterator)->getPos());
 
 							missiles.erase(mIterator);
@@ -599,8 +611,9 @@ void myPostSyncPreDrawFun()
 			for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
 			{
 				//lägg till spelarens kollisionsradie...
-				if (abs((player.getPos() - (*oIterator)->getPos()).length()) < player.getColRad() + (*oIterator)->getColRad())
+				if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
 				{
+					//createExplosion(1.0, player.getPos() - (*oIterator)->getPos(), "textures/dome_startscreen.png", mSceneTrans, 3.0, 3.0);
 					soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
 					(*oIterator)->removeChildModel((*oIterator)->getModel());
 					//delete (*oIterator);
@@ -612,12 +625,12 @@ void myPostSyncPreDrawFun()
 				//Collision check object-object
 				for (list<GameObject*>::iterator oIterator2 = objectList.begin(); oIterator2 != objectList.end(); oIterator2++)
 				{
-					if (oIterator != oIterator2 && abs(((*oIterator)->getPos()).length() - ((*oIterator2)->getPos()).length()) < (*oIterator)->getColRad() + (*oIterator2)->getColRad())
+					if (oIterator != oIterator2 && ((*oIterator)->getPos() - (*oIterator2)->getPos()).length() < (*oIterator)->getColRad() + (*oIterator2)->getColRad())
 					{
-						cout << abs(((*oIterator)->getPos()).length() - ((*oIterator2)->getPos()).length()) << "<" << (*oIterator)->getColRad() + (*oIterator2)->getColRad() << " ?\n\n";
-						(*oIterator)->removeChildModel((*oIterator)->getModel());//	cout << "object collided with object\n";
+						(*oIterator)->removeChildModel((*oIterator)->getModel());
 						(*oIterator2)->removeChildModel((*oIterator2)->getModel());
 
+						//createExplosion(500.0, player.getPos() - (*oIterator)->getPos(), "textures/dome_startscreen.png", mSceneTrans, 3.0, 3.0);
 						soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
 
 						objectList.erase(oIterator);
@@ -630,7 +643,7 @@ void myPostSyncPreDrawFun()
 				//Update AI-related stuff
 				if ((*oIterator)->getName() == "Enemy")
 				{
-					(*oIterator)->updateAI(player.getPos());
+					(*oIterator)->updateAI(player.getPos(), missiles, mSceneTrans, gEngine->getDt());
 				}
 
 			}
@@ -877,7 +890,7 @@ void setupLightSource()
 
 	light0->setLightNum(0);
 	light0->setPosition(osg::Vec4(150.0f, 150.0f, 0.0f, 1.0f));
-	light0->setAmbient(osg::Vec4(0.5f, 0.5f, 0.5f, 1.0f));
+	light0->setAmbient(osg::Vec4(lightval, lightval, lightval, 1.0f));
 	light0->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.8f, 1.0f));
 	light0->setSpecular(osg::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	light0->setConstantAttenuation(1.0f);

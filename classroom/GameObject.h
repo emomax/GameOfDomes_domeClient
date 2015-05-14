@@ -1,18 +1,10 @@
 #pragma once
 
-#include "Object.h"
 #include "Includes.h"
-//#include <osgDB/ReadFile>
-//#include <osg/MatrixTransform>
-//#include <osg/ComputeBoundsVisitor>
-//
-//#include <osg/Depth>
-//#include <osg/TexGen>
-//#include <osg/TextureCubeMap>
-//#include <osg/ShapeDrawable>
-//#include <osg/Geode>
-//#include <osgDB/ReadFile>
-//#include <osgUtil/CullVisitor>
+#include "Object.h"
+
+//Forward define Projectile class for the virtual updateAI function
+class Projectile;
 
 class GameObject : public Object
 {
@@ -40,7 +32,7 @@ public:
 
 	virtual ~GameObject() {}
 
-	virtual void updateAI(osg::Vec3f _playerPos) { return; };
+	virtual void updateAI(osg::Vec3f _playerPos, std::list<Projectile>& _missiles, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, float _dt) { return; };
 
 private:
 	float rigidBodyRadius;

@@ -5,3 +5,6 @@ MaxThrustAcceleration: 		80.0
 FireRate(seconds/laser):	0.4
 ProjectileVelocity:			12000
 ShakeVal:					2.5
+NrOfAsteroids:				50
+ambientLight:				0.5
+ExplosionsAndGunnerlimit?	0

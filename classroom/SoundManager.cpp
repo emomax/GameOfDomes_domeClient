@@ -81,7 +81,7 @@ void SoundManager::play(std::string score, osg::Vec3f position) {
 	soundPosition[1] = position.y();
 	soundPosition[2] = position.z();
 
-	std::cout << soundPosition[0] << " " << position.y() << " " << position.z() << "score = " << score << std::endl;
+	//std::cout << soundPosition[0] << " " << position.y() << " " << position.z() << "score = " << score << std::endl;
 
 	if (score == "mainMenu_music") {
 		stopMusic();

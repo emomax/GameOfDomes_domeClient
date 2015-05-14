@@ -1,5 +1,6 @@
-#include "GameObject.h"
 #include "Includes.h"
+#include "GameObject.h"
+#include "Projectile.h"
 
 class EnemyShip : public GameObject
 {
@@ -10,12 +11,17 @@ public:
 	int getHP() { return hp; }
 	void setHp(int _hp) { hp = _hp; }
 
-	void updateAI(osg::Vec3f _playerPos);
+	void updateAI(osg::Vec3f _playerPos, std::list<Projectile>& _missiles, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, float _dt);
 
 	virtual ~EnemyShip() {}
 
 private:
 	int hp;
+	float attackCooldown;
+	float homingMissileAttackCooldown;
+
+	//Used for rotational purposes
+	osg::Vec3f upDir;
 
 	enum currState;
 };

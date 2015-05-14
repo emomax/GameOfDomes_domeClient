@@ -99,10 +99,20 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 
 //Billboard functions
+
+/**
+* Max fiddeli-doodely with animatable billboards
+*//
+
+
+
+/**
+* Max ending of fiddeli-doodely with animatable billboards
+*/
+
 #pragma once
 osg::Drawable* createBillboardDrawable(const float & scale, osg::StateSet* bbState, float width, float height)
 {
-
 	width *= scale;
 	height *= scale;
 
@@ -165,6 +175,8 @@ void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 
 }
 
+
+//! Function for setting up skybox. Takes a shared pointer to the transform node.
 void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans)
 {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;

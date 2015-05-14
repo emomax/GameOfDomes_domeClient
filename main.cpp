@@ -483,7 +483,6 @@ void myPostSyncPreDrawFun()
 		setGameState(gameState.getVal(), objIndex, objectList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal());
 		newState.setVal(false);
 	}
-	
 
 	switch (gameState.getVal()) {
 	//Welcome Screen

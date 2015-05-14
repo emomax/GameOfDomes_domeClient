@@ -8,6 +8,7 @@ public:
 	osg::Vec3f getDir() { return direction; }
 	osg::Quat getOrientation() { return orientation; }
 	osg::Vec3f getPos() { return pos; }
+	float getScale() { return scale; }
 	osg::ref_ptr<osg::MatrixTransform> getTrans() { return transform; }
 
 	std::string getName() { return name; }

@@ -11,6 +11,7 @@ Utilities.h contains useful functions that the program uses.
 #include "SoundManager.h"
 
 
+
 //Function declarations
 void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height);
 void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans);
@@ -18,7 +19,9 @@ void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans);
 
 //Function for changing level. the list containing all objects and the relevant matrix transforms are called as reference. Note that the matrix transforms are pointers.
 void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, Player& _player, osg::ref_ptr<osg::MatrixTransform> _mNavTrans, 
-	osg::ref_ptr<osg::MatrixTransform> _mRootTrans, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, SoundManager& _soundManager, int _randomSeed) {
+	osg::ref_ptr<osg::MatrixTransform> _mRootTrans, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, osg::ref_ptr<osg::MatrixTransform> _mWelcomeTrans,
+	SoundManager& _soundManager, int _randomSeed)
+{
 
 	switch (_state) {
 		//Welcome Screen
@@ -27,7 +30,7 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 				_mSceneTrans->removeChildren(0, _mSceneTrans->getNumChildren());
 				makeSkyBox(_mNavTrans);
-				createBillboard(1.0, osg::Vec3f(0, 3, 0), "textures/dome_startscreen.png", _mSceneTrans, 3.0, 3.0);
+				createBillboard(1.0, osg::Vec3f(0, 3, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 3.0, 3.0);
 				_soundManager.play("mainMenu_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 				_state = 0;
 	}
@@ -38,6 +41,7 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 				cout << "State set to GAME_SCREEN." << endl;
 
 				_mSceneTrans->removeChildren(0, _mSceneTrans->getNumChildren());
+				_mWelcomeTrans->removeChildren(0, _mWelcomeTrans->getNumChildren());
 				//makeSkyBox(_mNavTrans);
 
 				//Create the player. This will create matrix-transforms for the commandbridge and gunner as well.
@@ -58,15 +62,15 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 				for (int i = 0; i < 50; i++)
 				{
 					int rand1 = 5000 - (_randomSeed * 3571 + 997) % 10000;  //generate random value between -5000 and 5000
-					int rand2 = 5000 - ((500 + rand1) * 3571 + 997) % 10000; //generate new random value between -5000 and 5000
-					int rand3 = 5000 - ((500 + rand2) * 3571 + 997) % 10000; //Prime numbers are used to avoid repetitions.
+					int rand2 = 5000 - ((5000 + rand1) * 3571 + 997) % 10000; //generate new random value between -5000 and 5000
+					int rand3 = 5000 - ((5000 + rand2) * 3571 + 997) % 10000; //Prime numbers are used to avoid repetitions.
 					std::cout << rand1 << " " << rand2 << " " << rand3 << std::endl;
 					//float randScale = 1.2 - (float)(((500 + rand3) * 3571 + 997) % 400) / 1000; //generate random value between 0.8 - 1.2
 					//randScale *= 10;
 
 					_randomSeed = 5000 + rand3;
 
-					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 250.0f, (std::string)("models/kurvbrygga.ive"), _mSceneTrans, _objIndex++));
+					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(0, 100, 0), 10.0f, (std::string)("models/kurvbrygga.ive"), _mSceneTrans, _objIndex++));
 					//_objList.back()->setScale(randScale);						//pos variable need to take the scale into account. Save for later.
 					_objList.back()->rotate(osg::Quat(_randomSeed, rand1, rand2, rand3));
 					std::cout << _objList.back()->getName() << _objList.back()->getID() << std::endl;
@@ -128,7 +132,6 @@ osg::Drawable* createBillboardDrawable(const float & scale, osg::StateSet* bbSta
 
 void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height)
 {
-
 	osg::Billboard* theBillboard = new osg::Billboard();
 	_theTrans->addChild(theBillboard);
 

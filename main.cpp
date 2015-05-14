@@ -25,6 +25,7 @@ osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mRootTrans;
 osg::ref_ptr<osg::MatrixTransform> mNavTrans;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
+osg::ref_ptr<osg::MatrixTransform> mWelcomeTrans;
 
 //Player object to handle player position, hp, pilot and gunner transforms etc.
 Player player;
@@ -319,11 +320,13 @@ void myInitOGLFun()
 	mRootTrans = new osg::MatrixTransform();
 	mNavTrans = new osg::MatrixTransform();
 	mSceneTrans = new osg::MatrixTransform();
+	mWelcomeTrans = new osg::MatrixTransform();
 
 	
 	//Setup the scene graph
 	mRootNode->addChild(mRootTrans);
 	mRootTrans->addChild(mNavTrans);
+	mRootTrans->addChild(mWelcomeTrans);
 	mNavTrans->addChild(mSceneTrans);
 
 	//Transform to scene transformation from configuration file and apply static rotation to compensate for OSG-SGCT
@@ -477,7 +480,7 @@ void myPostSyncPreDrawFun()
 {
 	//setGameState is called for all nodes if newState is true
 	if (newState.getVal()) {
-		setGameState(gameState.getVal(), objIndex, objectList, player, mNavTrans, mRootTrans, mSceneTrans, soundManager, randomSeed.getVal());
+		setGameState(gameState.getVal(), objIndex, objectList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal());
 		newState.setVal(false);
 	}
 	
@@ -486,6 +489,7 @@ void myPostSyncPreDrawFun()
 	//Welcome Screen
 		case 0: {
 			// DO NOTHING FOR NOW. MAYBE SHOW BILLBOARD 
+			mNavTrans->postMult(osg::Matrix::rotate(0.03*gEngine->getDt(), -1.0, 0.1, 0.1));
 		}
 		break;
 
@@ -499,7 +503,7 @@ void myPostSyncPreDrawFun()
 				int rand2 = 5000 - ((5000 + rand1) * 3571 + 997) % 10000;
 				int rand3 = 5000 - ((5000 + rand2) * 3571 + 997) % 10000;
 				randomSeed.setVal(5000 + rand3);
-				objectList.push_back(new EnemyShip((std::string)("Enemy"), osg::Vec3f(rand1, rand2, rand3), 250.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 3, objIndex++));
+				objectList.push_back(new EnemyShip((std::string)("Enemy"), player.getPos() + osg::Vec3f(rand1, rand2, rand3), 250.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 3, objIndex++));
 				demoTime = 10.0;
 				cout << "Enemy Spawned" << endl;
 			}
@@ -564,18 +568,19 @@ void myPostSyncPreDrawFun()
 
 
 					//Collision check with player
-					//if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() /*+ player->getColRad()*/)
-					//{
-					//	mIterator->removeChildModel(mIterator->getModel()); cout << "missile collided with player\n";
-					//	missiles.erase(mIterator);
-					//	shakeTime = 0.5;
-					//	goto stop;		//break all current loops. stop is located directly after the collision handling loops.
-					//}
+					if (abs((mIterator->getPos() - player.getPos()).length()) < mIterator->getColRad() /*+ player->getColRad()*/)
+					{
+						mIterator->removeChildModel(mIterator->getModel()); cout << "missile collided with player\n";
+						missiles.erase(mIterator);
+						shakeTime = 0.5;
+						goto stop;		//break all current loops. stop is located directly after the collision handling loops.
+					}
 
 					//Collision check with objects in the scene
 					for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
 					{
-						if ((mIterator->getPos() - (*oIterator)->getPos()).length() < mIterator->getColRad() + (*oIterator)->getColRad())
+						cout << abs((mIterator->getPos() - (*oIterator)->getPos()).length()) << "\n";
+						if (abs((mIterator->getPos() - (*oIterator)->getPos()).length()) < mIterator->getColRad() + (*oIterator)->getColRad())
 						{
 							mIterator->removeChildModel(mIterator->getModel());	cout << "missile collided with object\n";
 							(*oIterator)->removeChildModel((*oIterator)->getModel());
@@ -595,7 +600,7 @@ void myPostSyncPreDrawFun()
 			for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
 			{
 				//lägg till spelarens kollisionsradie...
-				if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
+				if (abs((player.getPos() - (*oIterator)->getPos()).length()) < player.getColRad() + (*oIterator)->getColRad())
 				{
 					soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
 					(*oIterator)->removeChildModel((*oIterator)->getModel());
@@ -605,6 +610,25 @@ void myPostSyncPreDrawFun()
 					goto stop;
 				}
 
+				//Collision check object-object
+				for (list<GameObject*>::iterator oIterator2 = objectList.begin(); oIterator2 != objectList.end(); oIterator2++)
+				{
+					if (oIterator != oIterator2 && abs(((*oIterator)->getPos()).length() - ((*oIterator2)->getPos()).length()) < (*oIterator)->getColRad() + (*oIterator2)->getColRad())
+					{
+						cout << abs(((*oIterator)->getPos()).length() - ((*oIterator2)->getPos()).length()) << "<" << (*oIterator)->getColRad() + (*oIterator2)->getColRad() << " ?\n\n";
+						(*oIterator)->removeChildModel((*oIterator)->getModel());//	cout << "object collided with object\n";
+						(*oIterator2)->removeChildModel((*oIterator2)->getModel());
+
+						soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
+
+						objectList.erase(oIterator);
+						objectList.erase(oIterator2);
+
+						goto stop;
+					}
+				}
+
+				//Update AI-related stuff
 				if ((*oIterator)->getName() == "Enemy")
 				{
 					(*oIterator)->updateAI(player.getPos());
@@ -613,12 +637,6 @@ void myPostSyncPreDrawFun()
 			}
 			stop: //this is where the "goto stop" command goes
 
-
-			//Update AI-related stuff
-			/*for (list<EnemyShip>::iterator eIterator = enemyList.begin(); eIterator != enemyList.end(); eIterator++)
-			{
-				eIterator->updateAI();
-			}*/
 
 
 			//Shake camera on player collision with objects

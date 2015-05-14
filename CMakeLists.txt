@@ -234,4 +234,3 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 endif()
 
 target_link_libraries(${APP_NAME} ${LIBS})
-

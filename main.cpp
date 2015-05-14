@@ -578,7 +578,7 @@ void myPostSyncPreDrawFun()
 
 
 					//Collision check with player
-					if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() /*+ player->getColRad()*/)
+					if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() + player.getColRad())
 					{
 						mIterator->removeChildModel(mIterator->getModel());
 						missiles.erase(mIterator);
@@ -610,7 +610,6 @@ void myPostSyncPreDrawFun()
 			//Check collision with player and update enemy AI
 			for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
 			{
-				//lägg till spelarens kollisionsradie...
 				if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
 				{
 					//createExplosion(1.0, player.getPos() - (*oIterator)->getPos(), "textures/dome_startscreen.png", mSceneTrans, 3.0, 3.0);
@@ -889,9 +888,9 @@ void setupLightSource()
 	osg::LightSource* lightSource1 = new osg::LightSource;
 
 	light0->setLightNum(0);
-	light0->setPosition(osg::Vec4(150.0f, 150.0f, 0.0f, 1.0f));
+	light0->setPosition(osg::Vec4(80000.0f, 0.0f, 0.0f, 1.0f));
 	light0->setAmbient(osg::Vec4(lightval, lightval, lightval, 1.0f));
-	light0->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.8f, 1.0f));
+	light0->setDiffuse(osg::Vec4(2*lightval, 2*lightval, 2*lightval, 1.0f));
 	light0->setSpecular(osg::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	light0->setConstantAttenuation(1.0f);
 

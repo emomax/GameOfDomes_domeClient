@@ -1,7 +1,7 @@
 #include "EnemyShip.h"
 
 
-EnemyShip::EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, float _hp, int _id)
+EnemyShip::EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, int _hp, int _id)
 {
 	initTransform();
 	setVel(0.0);
@@ -9,7 +9,7 @@ EnemyShip::EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::str
 	upDir = osg::Vec3f(0.0f, 0.0, 1.0f);
 	setOrientation(osg::Quat(0.0f, 0.0f, 1.0f, 0.0f));
 	setColRad(_colRad);
-	setHp(_hp);
+	setHP(_hp);
 	translate(_pos);
 	setName(_name);
 	setDescr((std::string)("hej"));
@@ -36,7 +36,7 @@ void EnemyShip::updateAI(osg::Vec3f _playerPos, std::list<Projectile>& _missiles
 	tempQuat.makeRotate(upDir, -getDir());
 	
 	if (attackCooldown <= 0.0) {
-		_missiles.push_back(Projectile((std::string)("Laser"), getPos() + tempQuat * osg::Vec3f(0.0, 300.0, 0.0), getDir(), tempQuat, (std::string)("models/skott20m.obj"), _mSceneTrans, 1.0f, 4000));
+		_missiles.push_back(Projectile((std::string)("Laser"), getPos() + tempQuat * osg::Vec3f(0.0, 300.0, 0.0), getDir(), tempQuat, (std::string)("models/skott20m.obj"), _mSceneTrans, 50, 4000));
 		attackCooldown = 8.0;
 	}
 	else

@@ -26,9 +26,8 @@ public:
 
 	Projectile(std::string _name, osg::Vec3f _pos, osg::Vec3f _dir, osg::Quat _orientation, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, float _dmg, float _vel);
 
-	float getDmg() { return damage; }
+	int getDmg() { return damage; }
 	float getLifeTime() { return lifeTime; }
-
 	void setLifeTime(float _t) { lifeTime = _t; }
 
 	Projectile operator=(Projectile _p);
@@ -36,7 +35,7 @@ public:
 	virtual ~Projectile() {}
 
 private:
-	float damage;
+	int damage;
 	float lifeTime;
 
 };

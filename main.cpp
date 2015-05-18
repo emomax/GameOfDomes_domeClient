@@ -10,6 +10,7 @@ osgExample_sfs
 #include "classroom\Projectile.h"
 #include "classroom\EnemyShip.h"
 #include "classroom\Player.h"
+#include "classroom\Billboard.h"
 #include "classroom\NetworkManager.h"
 #include "classroom\SoundManager.h"
 
@@ -126,10 +127,14 @@ osg::Vec3f gunner_up = osg::Vec3f(0, 0, 1);
 osg::Vec3f gunner_side = osg::Vec3f(1, 0, 0);
 
 
-//vector containing all projectiles in the scene
+//list containing all projectiles in the scene
 std::list<Projectile> missiles;
 
-//vector containing all objects (asteroids, enemies, etc.) in the scene
+
+//list containing all billboards in the scene
+std::list<Billboard> billList;
+
+//list containing pointers to all objects (asteroids, enemies, etc.) in the scene. Pointer type is required to access subclass functions.
 std::list<GameObject*> objectList;
 
 
@@ -336,7 +341,7 @@ void myInitOGLFun()
 
 	//Transform to scene transformation from configuration file and apply static rotation to compensate for OSG-SGCT
 	mRootTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
-	mRootTrans->postMult(osg::Matrix::rotate(-PI / 2.0, 1.0, 0.0, 0.0));
+	mRootTrans->postMult(osg::Matrix::rotate(-PI / 2.0 + PI / 4.0, 1.0, 0.0, 0.0));	//+PI/4 is used to compensate for the fisheye view of the dome
 
 
 	//Setup the lightsource
@@ -491,7 +496,7 @@ void myPostSyncPreDrawFun()
 {
 	//setGameState is called for all nodes if newState is true
 	if (newState.getVal()) {
-		setGameState(gameState.getVal(), objIndex, objectList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal(), asteroidAmount);
+		setGameState(gameState.getVal(), objIndex, objectList, billList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal(), asteroidAmount);
 		newState.setVal(false);
 	}
 	
@@ -514,7 +519,7 @@ void myPostSyncPreDrawFun()
 				int rand2 = 5000 - ((5000 + rand1) * 3571 + 997) % 10000;
 				int rand3 = 5000 - ((5000 + rand2) * 3571 + 997) % 10000;
 				randomSeed.setVal(5000 + rand3);
-				objectList.push_back(new EnemyShip((std::string)("Enemy"), player.getPos() + osg::Vec3f((float)rand1, (float)rand2, (float)rand3), 250.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 3, objIndex++));
+				objectList.push_back(new EnemyShip((std::string)("Enemy"), player.getPos() + osg::Vec3f((float)rand1, (float)rand2, (float)rand3), 250.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 120, objIndex++));
 				demoTime = 10.0;
 			}
 			demoTime -= gEngine->getDt();
@@ -524,8 +529,8 @@ void myPostSyncPreDrawFun()
 				//Add and then sort new projectiles in the missile vector.
 				osg::Vec3f tempVec = (gunnerQuat * baseQuat) * osg::Vec3f(0, 1, 0);
 				osg::Quat tempDir = gunnerQuat * baseQuat;
-				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200.0, 0.0, -100.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
-				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200.0, 0.0, -100.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 1.0f, navigationSpeed + projectileVelocity));
+				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200.0, 400.0, 0.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 50, navigationSpeed + projectileVelocity));
+				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200.0, 400.0, 0.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 50, navigationSpeed + projectileVelocity));
 				fireSync.setVal(false);
 			}
 
@@ -559,6 +564,7 @@ void myPostSyncPreDrawFun()
 
 			
 		//Collision handling. This should probably get moved into its own class
+		//When an object is removed, the iterator list will become wrong. Therefore a stop command is used to break the loops after removal.
 
 			//Move, remove and check collisions for missiles.
 			for (list<Projectile>::iterator mIterator = missiles.begin(); mIterator != missiles.end(); mIterator++)
@@ -580,9 +586,20 @@ void myPostSyncPreDrawFun()
 					//Collision check with player
 					if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() + player.getColRad())
 					{
-						mIterator->removeChildModel(mIterator->getModel());
-						missiles.erase(mIterator);
-						shakeTime = 0.5;
+						//deal damage and end game if below 0 HP
+						player.setHP(player.getHP() - round(mIterator->getDmg() * eInputEngine));
+						cout << player.getHP() << endl;
+						if (player.getHP() <= 0) {
+							gameState.setVal(0); //Go back to welcome screen
+							newState.setVal(true);
+							missiles.clear();
+						}
+						else {
+							mIterator->removeChildModel(mIterator->getModel());
+							missiles.erase(mIterator);
+							shakeTime = 0.5;
+						}
+
 						goto stop;		//break all current loops. stop is located directly after the collision handling loops.
 					}
 
@@ -591,15 +608,28 @@ void myPostSyncPreDrawFun()
 					{
 						if ((mIterator->getPos() - (*oIterator)->getPos()).length() < mIterator->getColRad() + (*oIterator)->getColRad())
 						{
+							(*oIterator)->setHP((*oIterator)->getHP() - mIterator->getDmg());
+							if ((*oIterator)->getHP() <= 0) {
+								(*oIterator)->removeChildModel((*oIterator)->getModel());
+								
+								if ((*oIterator)->getName() == "Asteroid")
+									billList.push_back(Billboard(5000, (*oIterator)->getPos(), "", mSceneTrans, 1.0, 1.0, "Explosion"));
+								else
+									billList.push_back(Billboard(1000, (*oIterator)->getPos(), "", mSceneTrans, 1.0, 1.0, "Explosion"));
+								soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
+								
+								objectList.erase(oIterator);
+							}
+							else {
+								if ((*oIterator)->getName() == "Enemy"){
+									osg::Vec3f diffVec = player.getPos() - (*oIterator)->getPos();
+									diffVec.normalize();
+									billList.push_back(Billboard(800, (*oIterator)->getPos() + diffVec * 200, "textures/EnemyShield_01.png", mSceneTrans, 1.0, 1.0, "EnemyShield"));
+								}
+							}
+
 							mIterator->removeChildModel(mIterator->getModel());
-							(*oIterator)->removeChildModel((*oIterator)->getModel());
-							
-
-							if (domtest) createExplosion(500.0, (*oIterator)->getPos() - player.getPos(), "textures/dome_startscreen.png", mSceneTrans, 3.0, 3.0);
-							soundManager.play("explosion", player.getPos()  - (*oIterator)->getPos());
-
 							missiles.erase(mIterator);
-							objectList.erase(oIterator);
 
 							goto stop;
 						}
@@ -645,6 +675,20 @@ void myPostSyncPreDrawFun()
 					(*oIterator)->updateAI(player.getPos(), missiles, mSceneTrans, gEngine->getDt());
 				}
 
+				//Update billboards
+				for (list<Billboard>::iterator bIterator = billList.begin(); bIterator != billList.end(); bIterator++)
+				{
+					if (bIterator->isTimed()) {
+						if (bIterator->getLifeTime() <= 0.0) {
+							bIterator->removeBillboard();
+							billList.erase(bIterator);
+							goto stop;
+						}
+						else
+							bIterator->setLifeTime(bIterator->getLifeTime() - gEngine->getDt());	//getDt() blir för stor här
+					}
+				}
+
 			}
 			stop: //this is where the "goto stop" command goes
 
@@ -660,7 +704,7 @@ void myPostSyncPreDrawFun()
 
 				//Generate new random seed
 				randomSeed.setVal(round(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)* 1000));
-
+				
 				mNavTrans->preMult(osg::Matrix::rotate(shakeVal*gEngine->getDt(), rand1, rand2, 0));
 				shakeTime -= gEngine->getDt();
 			}

@@ -18,13 +18,9 @@ public:
 		rigidBodyRadius = 0.0;
 		initTransform();
 	}
-	Player(std::string _name, osg::Vec3f _pos, float _colRad, osg::ref_ptr<osg::MatrixTransform> _scene);
+	Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::ref_ptr<osg::MatrixTransform> _scene);
 
-	//float getVel() { return velocity; }
-	//osg::Vec3f getDir() { return direction; }
-	//osg::Quat getOrientation() { return orientation; }
 	osg::Vec3f getPos() { return pos; }
-	int getHP() { return hp; }
 	float getColRad() { return rigidBodyRadius; }
 	osg::ref_ptr<osg::MatrixTransform> getPlayerTrans() { return playerTransform; }
 	osg::ref_ptr<osg::MatrixTransform> getBridgeTrans() { return bridgeTransform; }
@@ -32,19 +28,16 @@ public:
 	std::string getName() { return name; }
 
 	void initTransform();
-	//void setVel(float _v) { velocity = _v; }
-	void setHP(float _hp) { hp = _hp; }
-	//void setDir(osg::Vec3f _d) { direction = _d; }
-	//void setOrientation(osg::Quat _q) { orientation = _q; }
 	void setPos(osg::Vec3f _pos) { pos = _pos; }
 	void setScale(float _s) { scale = _s; }
-	//void translate(osg::Vec3f _t);
-	//void rotate(osg::Quat _q);
+	int getHP() { return hp; }
+	void setHP(int _hp) { hp = _hp; }
 
 	void setPlayerTrans(osg::ref_ptr<osg::MatrixTransform> _t) { playerTransform = _t; }
 	void setBridgeTrans(osg::ref_ptr<osg::MatrixTransform> _t) { bridgeTransform = _t; }
 	void rotateGunnerTrans(osg::Quat _q);
 
+	void resetPlayer();
 
 	void setName(std::string _n) { name = _n; }
 

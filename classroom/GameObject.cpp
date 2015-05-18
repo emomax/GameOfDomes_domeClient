@@ -1,6 +1,6 @@
 #include "GameObject.h"
 
-GameObject::GameObject(std::string _name, osg::Vec3f _pos, float _colRad, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, int _id)
+GameObject::GameObject(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, int _id)
 {
 	initTransform();
 	setVel(0.0);
@@ -9,6 +9,7 @@ GameObject::GameObject(std::string _name, osg::Vec3f _pos, float _colRad, std::s
 	rigidBodyRadius = _colRad;
 	translate(_pos);
 	setName(_name);
+	setHP(_hp);
 	setDescr((std::string)("hej"));
 	_scene->addChild(getTrans());
 	setID(_id);

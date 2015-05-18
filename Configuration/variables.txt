@@ -6,5 +6,5 @@ FireRate(seconds/laser):	0.4
 ProjectileVelocity:			12000
 ShakeVal:					2.5
 NrOfAsteroids:				50
-ambientLight:				10.0
-ExplosionsAndGunnerlimit?	0
+LightValue:					2.0
+ExplosionsAndGunnerlimit?	1

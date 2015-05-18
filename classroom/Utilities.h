@@ -7,6 +7,7 @@ Utilities.h contains useful functions that the program uses.
 #include "SkyBox.h"
 #include "Projectile.h"
 #include "Player.h"
+#include "Billboard.h"
 #include "NetworkManager.h"
 #include "SoundManager.h"
 
@@ -19,7 +20,7 @@ void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 
 
 //Function for changing level. the list containing all objects and the relevant matrix transforms are called as reference. Note that the matrix transforms are pointers.
-void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, Player& _player, osg::ref_ptr<osg::MatrixTransform> _mNavTrans, 
+void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, std::list<Billboard>& _billList, Player& _player, osg::ref_ptr<osg::MatrixTransform> _mNavTrans,
 	osg::ref_ptr<osg::MatrixTransform> _mRootTrans, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, osg::ref_ptr<osg::MatrixTransform> _mWelcomeTrans,
 	SoundManager& _soundManager, int _randomSeed, int _asteroidAmount)
 {
@@ -30,8 +31,18 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 				cout << "State set to WELCOME_SCREEN." << endl;
 
 				_mSceneTrans->removeChildren(0, _mSceneTrans->getNumChildren());
-				makeSkyBox(_mNavTrans);
-				createBillboard(1.0, osg::Vec3f(0, 3, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 3.0, 3.0);
+				_objList.clear();
+				_billList.clear();
+				_objIndex = 0;
+
+				//Check if game just started or if game over reset. RootTrans should only have navTrans and welcomeTrans as children at start of game
+				if (_mRootTrans->getNumChildren() <= 2)
+					makeSkyBox(_mNavTrans);
+				else
+					_player.resetPlayer();
+
+				_billList.push_back(Billboard(30.0, osg::Vec3f(0, 30, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 1.0, 1.0, "Startscreen"));
+				//createBillboard(1.0, osg::Vec3f(0, 3, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 3.0, 3.0);
 				_soundManager.play("mainMenu_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 				_state = 0;
 	}
@@ -43,22 +54,19 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 				_mSceneTrans->removeChildren(0, _mSceneTrans->getNumChildren());
 				_mWelcomeTrans->removeChildren(0, _mWelcomeTrans->getNumChildren());
-				//makeSkyBox(_mNavTrans);
+				_billList.clear();
 
 				//Create the player. This will create matrix-transforms for the commandbridge and gunner as well.
-				_player = Player("Player1", osg::Vec3f(0, 0, 0), 100, _mRootTrans);
+				_player = Player("Player1", osg::Vec3f(0, 0, 0), 250, 500, _mRootTrans);
 
-				//_mGunnerTrans->removeChildren(0, _mGunnerTrans->getNumChildren());
 				//Create the crosshair and set to be child of mGunnerTrans
-				createBillboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0);
+				_billList.push_back(Billboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0, "Crosshair"));
+				//createBillboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0);
 				
 
 				//Create a billboard representing the sun
-				createBillboard(80000.0, osg::Vec3f(80000, 0, 0), "textures/sol.png", _mSceneTrans, 1.0, 1.0);
-				//Add player object and commandbridge model
-				//_player = GameObject((std::string)("Spelaren"), osg::Vec3f(0, 0, 0), 100.0, (std::string)(""), _mPlayerTrans, _objIndex++);
-				//_bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, (std::string)("models/kurvbrygga.ive"), _mBridgeTrans, _objIndex++);
-
+				_billList.push_back(Billboard(80000.0, osg::Vec3f(80000, 0, 0), "textures/sol.png", _mSceneTrans, 1.0, 1.0, "Sun"));
+				//createBillboard(80000.0, osg::Vec3f(80000, 0, 0), "textures/sol.png", _mSceneTrans, 1.0, 1.0);
 
 				//Fill scene with 50 asteroids.
 				for (int i = 0; i < _asteroidAmount; i++)
@@ -66,13 +74,13 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 					int rand1 = 50000 - (_randomSeed * 3571 + 997) % 100000;  //generate random value between -5000 and 5000
 					int rand2 = 50000 - ((50000 + rand1) * 3571 + 997) % 100000; //generate new random value between -5000 and 5000
 					int rand3 = 50000 - ((50000 + rand2) * 3571 + 997) % 100000; //Prime numbers are used to avoid repetitions.
-					std::cout << rand1 << " " << rand2 << " " << rand3 << std::endl;
+
 					//float randScale = 1.2 - (float)(((500 + rand3) * 3571 + 997) % 400) / 1000; //generate random value between 0.8 - 1.2
 					//randScale *= 10;
 
 					_randomSeed = 50000 + rand3;
 
-					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 2500.0f, (std::string)("models/asteroid_5meter.ive"), _mSceneTrans, _objIndex++));
+					_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 2500.0f, 500, (std::string)("models/asteroid_5meter.ive"), _mSceneTrans, _objIndex++));
 					//_objList.back()->setScale(randScale);						//pos variable need to take the scale into account. Save for later.
 					_objList.back()->rotate(osg::Quat(_randomSeed, rand1, rand2, rand3));
 					std::cout << _objList.back()->getName() << _objList.back()->getID() << std::endl;
@@ -100,7 +108,7 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 
 //Billboard functions
-
+/*
 #pragma once
 osg::Drawable* createBillboardDrawable(const float & scale, osg::StateSet* bbState, float width, float height)
 {
@@ -164,9 +172,7 @@ void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 	theBillboard->addDrawable(billboardDrawable, _pos);
 }
 
-/**
-* Max fiddeli-doodely with animatable billboards
-*/
+
 
 void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height)
 {
@@ -234,10 +240,6 @@ void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 
 
 }
-
-
-/**
-* Max ending of fiddeli-doodely with animatable billboards
 */
 
 //! Function for setting up skybox. Takes a shared pointer to the transform node.

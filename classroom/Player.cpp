@@ -1,12 +1,13 @@
 
 #include "Player.h"
 
-Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, osg::ref_ptr<osg::MatrixTransform> _scene)
+Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::ref_ptr<osg::MatrixTransform> _scene)
 {
 	initTransform();
 	rigidBodyRadius = _colRad;
 	pos = _pos;
 	setName(_name);
+	setHP(_hp);
 
 	_scene->addChild(playerTransform);
 	playerTransform->postMult(osg::Matrix::translate(pos));
@@ -14,7 +15,7 @@ Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, osg::ref_ptr<o
 	bridgeTransform->postMult(osg::Matrix::rotate(PI + PI / 4.0, 1.0, 0.0, 0.0));
 	bridgeTransform->postMult(osg::Matrix::translate(0.0f, 100.0f, 0.0f));
 
-	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, (std::string)("models/kurvbrygga.ive"), bridgeTransform, 100000);
+	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga.ive"), bridgeTransform, 100000);
 }
 
 void Player::initTransform()
@@ -37,6 +38,14 @@ void Player::rotateGunnerTrans(osg::Quat _q)
 	gunnerTransform->postMult(osg::Matrix::rotate(_q));
 }
 
+void Player::resetPlayer()
+{
+	bridge.removeChildModel(bridge.getModel());
+	playerTransform->removeChildren(0, playerTransform->getNumChildren());
+	bridgeTransform->removeChildren(0, bridgeTransform->getNumChildren());
+	gunnerTransform->removeChildren(0, gunnerTransform->getNumChildren());
+}
+
 Player Player::operator=(Player _g)
 {
 	playerTransform = _g.playerTransform;
@@ -53,3 +62,5 @@ Player Player::operator=(Player _g)
 
 	return *this;
 }
+
+

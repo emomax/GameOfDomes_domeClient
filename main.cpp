@@ -37,6 +37,7 @@ osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across clust
 
 //callbacks
 void myInitOGLFun();
+void loadImages();
 void myPreSyncFun();
 void myPostSyncPreDrawFun();
 void myDrawFun();
@@ -147,6 +148,11 @@ double NetworkManager::end;
 int NetworkManager::itemsSent;
 bool NetworkManager::benchmarkingStarted = false;
 
+
+// Images for animated billboards
+
+// CREATE ANIMATION SEQUENCE
+osg::ref_ptr<osg::ImageSequence> explosionSequence;
 
 
 //! When something from a server extension is received this function is called. Could be position updating  of gameobject, a private message or just a notification. The ["cmd"] parameter of the event that is received  reveals which extension that was spitting out the info. Based on extension this function will do different things.
@@ -324,6 +330,8 @@ void myInitOGLFun()
 		soundManager.init();
 	}
 
+	loadImages();
+
 
 	//Generate random seed. (0-1000)
 	if (gEngine->isMaster()) {
@@ -352,6 +360,7 @@ void myInitOGLFun()
 	//Setup the lightsource
 	setupLightSource();
 }
+
 float x = 0;
 double checkIfImAwake = 100;
 
@@ -538,6 +547,7 @@ void myPostSyncPreDrawFun()
 				//Add and then sort new projectiles in the missile vector.
 				osg::Vec3f tempVec = (gunnerQuat * baseQuat) * osg::Vec3f(0, 1, 0);
 				osg::Quat tempDir = gunnerQuat * baseQuat;
+
 				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200.0, 400.0, 0.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 50, navigationSpeed + projectileVelocity));
 				missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200.0, 400.0, 0.0), tempVec, tempDir, (std::string)("models/skott20m.obj"), mSceneTrans, 50, navigationSpeed + projectileVelocity));
 				fireSync.setVal(false);
@@ -608,7 +618,6 @@ void myPostSyncPreDrawFun()
 							missiles.erase(mIterator);
 							shakeTime = 0.5;
 						}
-
 						goto stop;		//break all current loops. stop is located directly after the collision handling loops.
 					}
 
@@ -622,9 +631,9 @@ void myPostSyncPreDrawFun()
 								(*oIterator)->removeChildModel((*oIterator)->getModel());
 								
 								if ((*oIterator)->getName() == "Asteroid")
-									billList.push_back(Billboard(5000, (*oIterator)->getPos(), "", mSceneTrans, 1.0, 1.0, "Explosion"));
+									billList.push_back(Billboard(5000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
 								else
-									billList.push_back(Billboard(1000, (*oIterator)->getPos(), "", mSceneTrans, 1.0, 1.0, "Explosion"));
+									billList.push_back(Billboard(1000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
 								if (gEngine->isMaster())
 									soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
 								
@@ -968,4 +977,32 @@ void setupLightSource()
 
 	mNavTrans->addChild(lightSource0);
 	mRootNode->addChild(lightSource1);
+}
+
+void loadImages() {
+	explosionSequence = new osg::ImageSequence;
+
+	explosionSequence->setLength(1.2);
+	// load images
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00001.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00002.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00003.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00004.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00005.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00006.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00007.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00008.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00009.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00010.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00011.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00012.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00013.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00014.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00015.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00016.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00017.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00018.png"));
+	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00019.png"));
+
+	std::cout << "Sequence of explosions loaded into main memory.\n";
 }

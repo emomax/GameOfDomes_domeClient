@@ -63,7 +63,7 @@ void SoundManager::init() {
 	alGenSources(1, &laserSource);
 
 	/*setSource(&gameMusicSource, "sounds/gameOver2.wav");*/
-	setSource(&inGameSource, "sounds/ingame2.wav");
+	setSource(&inGameSource, "sounds/ingame_strings.wav");
 	setSource(&preGameSource, "sounds/pregame2.wav");
 	setSource(&gameOverSource, "sounds/gameOver2.wav");
 	setSource(&explosionSource, "sounds/explosion2.wav");

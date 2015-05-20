@@ -12,7 +12,7 @@ Projectile::Projectile(std::string _name, osg::Vec3f _pos, osg::Vec3f _dir, osg:
 	setDescr((std::string)("bangbang"));
 	_scene->addChild(getTrans());
 	damage = _dmg;
-	lifeTime = 3.0f;
+	lifeTime = 5.0f;
 
 	setModel(_model);
 }

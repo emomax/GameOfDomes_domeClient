@@ -11,7 +11,8 @@ Utilities.h contains useful functions that the program uses.
 #include "NetworkManager.h"
 #include "SoundManager.h"
 
-
+// CREATE ANIMATION SEQUENCE
+osg::ref_ptr<osg::ImageSequence> imageSequence = new osg::ImageSequence;
 
 //Function declarations
 void createBillboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height);
@@ -46,6 +47,30 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 				if (_isMaster)
 					_soundManager.play("mainMenu_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 				_state = 0;
+
+				imageSequence->setLength(1.2);
+				// load images
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00001.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00002.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00003.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00004.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00005.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00006.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00007.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00008.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00009.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00010.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00011.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00012.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00013.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00014.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00015.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00016.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00017.png"));
+				imageSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00018.png"));
+
+				//imageSequence->setLoopingMode(osg::ImageStream::NO_LOOPING);
+				imageSequence->play();
 	}
 		break;
 
@@ -193,30 +218,6 @@ void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 	// CREATE ANIMATION SEQUENCE
 	osg::ref_ptr<osg::ImageSequence> imageSequence = new osg::ImageSequence;
 
-	imageSequence->setLength(1.2);
-	// load images
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00001.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00002.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00003.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00004.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00005.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00006.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00007.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00008.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00009.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00010.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00011.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00012.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00013.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00014.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00015.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00016.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00017.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00018.png"));
-	imageSequence->addImage(osgDB::readImageFile("textures/Explosion_00019.png"));
-
-	//imageSequence->setLoopingMode(osg::ImageStream::NO_LOOPING);
-	imageSequence->play();
 
 	// set the sequence for playing.
 	billboardTexture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);

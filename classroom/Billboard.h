@@ -14,6 +14,8 @@ public:
 	float getLifeTime() { return lifeTime; }
 	void setLifeTime(float _t) { lifeTime = _t; }
 
+	// Max testing rescaling
+	void reScale(float _scaleX, float _scaleY);
 
 	void removeBillboard() { theBillboard->removeDrawables(0, theBillboard->getNumDrawables());  }
 

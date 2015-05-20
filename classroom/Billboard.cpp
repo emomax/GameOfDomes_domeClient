@@ -120,7 +120,7 @@ void Billboard::createExplosion(float _scale, osg::Vec3f _pos, osg::ref_ptr<osg:
 
 	theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
 	osg::Texture2D *billboardTexture = new osg::Texture2D;
-
+	
 	_sequence->rewind();
 	_sequence->setLoopingMode(osg::ImageStream::NO_LOOPING);
 	_sequence->play();
@@ -156,4 +156,18 @@ bool Billboard::isTimed()
 		return false;
 
 	return true;
+}
+
+void Billboard::reScale(float _scaleX, float _scaleY) {
+
+	osg::Drawable* newBillboard = theBillboard->getDrawable(0);
+		/*
+	osg::Vec3Array* crosshairVerts = new osg::Vec3Array(4);
+	(*crosshairVerts)[0] = osg::Vec3(-_width / 2.0f, 0, -_height / 2.0f);
+	(*crosshairVerts)[1] = osg::Vec3(_width / 2.0f, 0, -_height / 2.0f);
+	(*crosshairVerts)[2] = osg::Vec3(_width / 2.0f, 0, _height / 2.0f);
+	(*crosshairVerts)[3] = osg::Vec3(-_width / 2.0f, 0, _height / 2.0f);
+
+	billboardQuad->setVertexArray(crosshairVerts);*/
+
 }

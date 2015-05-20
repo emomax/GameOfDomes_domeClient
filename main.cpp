@@ -197,7 +197,8 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 		bool fire = *(ptrNotifiedISFSObject->GetBool("sgctFire"));
 
 		if (fire && fireTimer <= 0.0 ) {
-			soundManager.play("laser", osg::Vec3f(0.0f, 0.0f, 0.0f));
+			//if (gEngine->isMaster())
+				soundManager.play("laser", osg::Vec3f(0.0f, 0.0f, 0.0f));
 			fireSync.setVal(true);
 			fireTimer = fireRate / eInputTurret;
 		}
@@ -253,8 +254,6 @@ NetworkManager manager;
 
 int main(int argc, char* argv[])
 {
-	manager.init();
-	soundManager.init();
 
 	fstream freader;
 	string trash;
@@ -319,6 +318,12 @@ void myInitOGLFun()
 {
 	//Setup OSG scene graph and viewer.
 	initOSG();
+
+	if (gEngine->isMaster()) {
+		manager.init();
+		soundManager.init();
+	}
+
 
 	//Generate random seed. (0-1000)
 	if (gEngine->isMaster()) {
@@ -451,6 +456,9 @@ void myPreSyncFun()
 				osg::Quat gRX = osg::Quat(gInputRotX * gEngine->getDt(), gunner_up);
 				osg::Quat gRZ = osg::Quat(-gInputRotY * gEngine->getDt(), gunner_side);
 
+				gunnerQuat = gunnerQuat * gRX.conj();
+				gunnerQuat = gunnerQuat * gRZ.conj();
+
 				osg::Vec3f tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
 				float angle = acos(tempVec*osg::Vec3f(0, 1, 0));
 
@@ -458,19 +466,20 @@ void myPreSyncFun()
 					//Limit gunner crosshair to 1.2 radians from center and to positive z
 					if (angle > 1.2) {
 						osg::Vec3f tempVec2 = tempVec^osg::Vec3f(0, 1, 0);
-						gunnerQuat = gunnerQuat * osg::Quat((sqrt(pow(gInputRotX, 2) + pow(gInputRotY, 2))) * gEngine->getDt(), tempVec2);
+						
+						//If outside of bound, "bubble" back with small steps until inside
+						while (angle > 1.2) {
+							gunnerQuat = gunnerQuat * osg::Quat(0.002, tempVec2);
+							tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
+							angle = acos(tempVec*osg::Vec3f(0, 1, 0));
+						}
 					}
-					gunnerQuat = gunnerQuat * gRX.conj();
-
-					if (tempVec.z() > 0.0) {
-						gunnerQuat = gunnerQuat * gRZ.conj();
+					
+					while (tempVec.z() < 0.0){
+						cout << tempVec.z() << endl;
+						gunnerQuat = gunnerQuat * osg::Quat(0.002, osg::Vec3(1, 0, 0));
+						tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
 					}
-					else
-						gunnerQuat = gunnerQuat * osg::Quat(0.05 * gEngine->getDt(), osg::Vec3(1, 0, 0));
-				}
-				else {
-					gunnerQuat = gunnerQuat * gRZ.conj();
-					gunnerQuat = gunnerQuat * gRX.conj();
 				}
 
 				//Sync values with all nodes
@@ -496,7 +505,7 @@ void myPostSyncPreDrawFun()
 {
 	//setGameState is called for all nodes if newState is true
 	if (newState.getVal()) {
-		setGameState(gameState.getVal(), objIndex, objectList, billList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal(), asteroidAmount);
+		setGameState(gameState.getVal(), objIndex, objectList, billList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal(), asteroidAmount, gEngine->isMaster());
 		newState.setVal(false);
 	}
 	
@@ -616,7 +625,8 @@ void myPostSyncPreDrawFun()
 									billList.push_back(Billboard(5000, (*oIterator)->getPos(), "", mSceneTrans, 1.0, 1.0, "Explosion"));
 								else
 									billList.push_back(Billboard(1000, (*oIterator)->getPos(), "", mSceneTrans, 1.0, 1.0, "Explosion"));
-								soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
+								if (gEngine->isMaster())
+									soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
 								
 								objectList.erase(oIterator);
 							}
@@ -643,7 +653,8 @@ void myPostSyncPreDrawFun()
 				if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
 				{
 					//createExplosion(1.0, player.getPos() - (*oIterator)->getPos(), "textures/dome_startscreen.png", mSceneTrans, 3.0, 3.0);
-					soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
+					if (gEngine->isMaster())
+						soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
 					(*oIterator)->removeChildModel((*oIterator)->getModel());
 					//delete (*oIterator);
 					objectList.erase(oIterator);
@@ -660,7 +671,8 @@ void myPostSyncPreDrawFun()
 						(*oIterator2)->removeChildModel((*oIterator2)->getModel());
 
 						//createExplosion(500.0, player.getPos() - (*oIterator)->getPos(), "textures/dome_startscreen.png", mSceneTrans, 3.0, 3.0);
-						soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
+						if (gEngine->isMaster())
+							soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
 
 						objectList.erase(oIterator);
 						objectList.erase(oIterator2);

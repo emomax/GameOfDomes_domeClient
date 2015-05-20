@@ -10,11 +10,11 @@
 
 <SmartFoxConfig>
 	<!-- Mandatory Settings -->
-<ip>85.228.182.184</ip>
-  <udpIp>85.228.182.184</udpIp>
+<!-- <ip>85.228.182.184</ip>
+  <udpIp>85.228.182.184</udpIp> -->
 
-<!-- <ip>192.168.1.64</ip>
-  <udpIp>192.168.1.64</udpIp> -->
+ <ip>192.168.1.64</ip>
+  <udpIp>192.168.1.64</udpIp>
 
  <!--<ip>localhost</ip>
   <udpIp>localhost</udpIp>-->

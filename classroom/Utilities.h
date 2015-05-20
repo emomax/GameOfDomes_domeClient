@@ -22,7 +22,7 @@ void createExplosion(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 //Function for changing level. the list containing all objects and the relevant matrix transforms are called as reference. Note that the matrix transforms are pointers.
 void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, std::list<Billboard>& _billList, Player& _player, osg::ref_ptr<osg::MatrixTransform> _mNavTrans,
 	osg::ref_ptr<osg::MatrixTransform> _mRootTrans, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, osg::ref_ptr<osg::MatrixTransform> _mWelcomeTrans,
-	SoundManager& _soundManager, int _randomSeed, int _asteroidAmount)
+	SoundManager& _soundManager, int _randomSeed, int _asteroidAmount, bool _isMaster)
 {
 
 	switch (_state) {
@@ -43,7 +43,8 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 				_billList.push_back(Billboard(30.0, osg::Vec3f(0, 30, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 1.0, 1.0, "Startscreen"));
 				//createBillboard(1.0, osg::Vec3f(0, 3, 0), "textures/dome_startscreen.png", _mWelcomeTrans, 3.0, 3.0);
-				_soundManager.play("mainMenu_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+				if (_isMaster)
+					_soundManager.play("mainMenu_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 				_state = 0;
 	}
 		break;
@@ -85,7 +86,8 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 					_objList.back()->rotate(osg::Quat(_randomSeed, rand1, rand2, rand3));
 					std::cout << _objList.back()->getName() << _objList.back()->getID() << std::endl;
 				}
-				_soundManager.play("inGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+				if (_isMaster)
+					_soundManager.play("inGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 
 				_state = 1;
 	}
@@ -98,7 +100,8 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 		break;
 	case 3: {
 				cout << "State set to PREGAME_SCREEN." << endl;
-				_soundManager.play("preGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+				if (_isMaster)
+					_soundManager.play("preGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 				_state = 3;
 	}
 		break;

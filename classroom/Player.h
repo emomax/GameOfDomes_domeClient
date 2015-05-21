@@ -32,7 +32,9 @@ public:
 	void setScale(float _s) { scale = _s; }
 	int getHP() { return hp; }
 	int getMaxHP() { return maxHp; }
+
 	void setHP(int _hp) { hp = _hp; }
+	void setMaxHP(int _hp) { maxHp = _hp; }
 
 	void setPlayerTrans(osg::ref_ptr<osg::MatrixTransform> _t) { playerTransform = _t; }
 	void setBridgeTrans(osg::ref_ptr<osg::MatrixTransform> _t) { bridgeTransform = _t; }

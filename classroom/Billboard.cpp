@@ -4,8 +4,8 @@
 Billboard::Billboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height,std::string _name)
 {
 	name = _name;
-	width = 948;// _width;
-	height = 88;// _height;
+	width = _width;// _width;
+	height = _height;// _height;
 
 	std::cout << "Billboard " << _name << " Setting width and height to: (" << _width << ", " << _height << ")\n";
 
@@ -195,7 +195,7 @@ void Billboard::reScale(float _scaleX, float _scaleY) {
 	//float _height = height * -_scaleY;// * _scaleY;
 	texMat->setMatrix(osg::Matrix::inverse(osg::Matrix::scale(_scaleX, _scaleY, 1.0f)));
 
-	std::cout << width /*theRect->getTextureWidth()*/ << " is the width!\n";
+	//std::cout << width /*theRect->getTextureWidth()*/ << " is the width!\n";
 	return;
 	
 

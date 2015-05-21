@@ -86,7 +86,15 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 				_player = Player("Player1", osg::Vec3f(0, 0, 0), 250, 500, _mRootTrans);
 
 				//Create the crosshair and set to be child of mGunnerTrans
-				_billList.push_back(Billboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/healthbar_full.png", _player.getGunnerTrans(), 3, 3 * (88.0/948), "Crosshair"));
+				_billList.push_back(Billboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1, 1, "Crosshair"));
+
+
+				osg::ref_ptr<osg::MatrixTransform> crosshairTransform = new osg::MatrixTransform();
+				crosshairTransform->setMatrix(osg::Matrix::identity());
+				crosshairTransform->postMult(osg::Matrix::rotate(-PI/8, 1.0f, 0.0f, 0.0f));
+				_mRootTrans->addChild(crosshairTransform);
+
+				_billList.push_back(Billboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/healthbar_full.png", crosshairTransform, 3, 3 * (88.0 / 948), "Healthbar"));
 				//createBillboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0);
 				
 

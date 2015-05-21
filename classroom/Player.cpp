@@ -7,8 +7,10 @@ Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::
 	rigidBodyRadius = _colRad;
 	pos = _pos;
 	setName(_name);
+	setMaxHP(_hp);
 	setHP(_hp);
-	maxHp = hp;
+
+	std::cout << "hp is: " << getHP() << " and maxHp is: " << getMaxHP() << std::endl;
 
 	_scene->addChild(playerTransform);
 	playerTransform->postMult(osg::Matrix::translate(pos));
@@ -55,6 +57,7 @@ Player Player::operator=(Player _g)
 
 	pos = _g.pos;
 	hp = _g.hp;
+	maxHp = _g.maxHp;
 	bridge = _g.bridge;
 	hp = _g.hp;
 	rigidBodyRadius = _g.rigidBodyRadius;

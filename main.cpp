@@ -112,7 +112,7 @@ double eInputEngine = 0.5, eInputShield = 0.5, eInputTurret = 0.5;
 
 // testItems
 
-float angle = 0.0f;
+int angle = 0;
 
 
 //Shake bridge on collision
@@ -708,9 +708,17 @@ void myPostSyncPreDrawFun()
 				//Update billboards
 				for (list<Billboard>::iterator bIterator = billList.begin(); bIterator != billList.end(); bIterator++)
 				{
-					if (bIterator->getName() == "Crosshair" && angle++ > 400) {
+					if (bIterator->getName() == "Healthbar" && (angle++ % 700) == 0) {
 						//std::cout << "Write stuff\n";
-						bIterator->reScale(0.5 + 0.5 * (glm::sin((angle) / 600)), 1.0f);
+						
+						//bIterator->reScale(0.5 + 0.5 * (glm::sin(((float)(angle)) / 600)), 1.0f);
+						float mHp = (float)(player.getMaxHP());
+						float hp = (float)(player.getHP());
+						float scale = hp / mHp;
+
+						std::cout << "scale2: (" << hp << " / " << hp << ") = " << mHp / hp << " should be: " << scale << endl;
+
+						bIterator->reScale(scale, 1.0f);
 					}
 
 					if (bIterator->isTimed()) {

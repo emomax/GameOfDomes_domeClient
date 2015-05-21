@@ -4,10 +4,10 @@
 Billboard::Billboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height,std::string _name)
 {
 	name = _name;
-	width = _width;
-	height = _height;
+	width = 948;// _width;
+	height = 88;// _height;
 
-	std::cout << "Billboard " << _name << " Setting width and height to: (" << _width << ", " << height << ")\n";
+	std::cout << "Billboard " << _name << " Setting width and height to: (" << _width << ", " << _height << ")\n";
 
 
 	if (_name == "Explosion") {
@@ -32,6 +32,9 @@ Billboard::Billboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 		theImage = osgDB::readImageFile(_image);
 
 		theRect = new osg::TextureRectangle(theImage);
+		//theRect->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
+		//theRect->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
+		theRect->setTextureSize(width, height);
 		theRect->setResizeNonPowerOfTwoHint(false);
 		texMat = new osg::TexMat;
 		texMat->setScaleByTextureRectangleSize(true);
@@ -183,16 +186,20 @@ bool Billboard::isTimed()
 
 void Billboard::reScale(float _scaleX, float _scaleY) {
 
-	float _width = width * (1 - _scaleX);// * _scaleX;
-	float _height = height * (1 -  _scaleY);// * _scaleY;
-	texMat->setMatrix(/*osg::Matrix::translate(_width, _height, 1.0)**/osg::Matrix::inverse(osg::Matrix::scale(_scaleX, _scaleY, 1.0f)));
+	//float _width = width * _scaleX;
+	//float _height = height * _scaleY;
 
+	
+	//return;
+	//float _width = width *-_scaleX;// * _scaleX;
+	//float _height = height * -_scaleY;// * _scaleY;
+	texMat->setMatrix(osg::Matrix::inverse(osg::Matrix::scale(_scaleX, _scaleY, 1.0f)));
+
+	std::cout << width /*theRect->getTextureWidth()*/ << " is the width!\n";
 	return;
 	
 
-	std::cout <<  theRect->getTextureWidth() << " is the width!\n";
 
-		return;
 
 	std::cout << "Billboard::reScale was called! reScale to: (" << _scaleX << ", " << _scaleY << ") \n";
 	if (theImage->valid()) {

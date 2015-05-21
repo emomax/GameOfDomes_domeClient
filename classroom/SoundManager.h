@@ -14,11 +14,13 @@ class SoundManager {
 public:
 	SoundManager();
 	virtual ~SoundManager();
-	void init();
+	void init(float _bgVolume, float _soundVolume);
 
 	void play(std::string score, osg::Vec3f position);
 	void stopMusic();
 	void pauseMusic(){}
+
+	void muteAll();
 
 private:
 	// SFX
@@ -42,6 +44,10 @@ private:
 	ALfloat ListenerVel[3];
 	ALfloat ListenerOri[6];
 
+	// GLOBALS
+	bool _MUTED = false;
+	float _bgVolume = 1.0;
+	float _soundVolume = 1.0;
 
 	void setSource(ALuint *source, char *url);
 	ALenum setSoundFormat(short bitsPerSample);

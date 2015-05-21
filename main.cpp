@@ -93,6 +93,8 @@ float accThrustMax = 0.4;
 float fireRate = 0.4;	//One bullet / 400ms
 float projectileVelocity = 12000.0;
 float shakeVal = 2.5;
+float soundVolume = 1.0f;
+float bgVolume = 1.0f;
 
 float navigationSpeed = 0.0; // Current player speed
 float accRotX = 0.0, accRotY = 0.0, accRotZ = 0.0;	//rotational acceleration
@@ -107,6 +109,11 @@ bool domtest = false;
 double gInputRotX = 0.0, gInputRotY = 0.0;
 double pInputRotX = 0.0, pInputRotY = 0.0, pInputRotZ = 0.0;
 double eInputEngine = 0.5, eInputShield = 0.5, eInputTurret = 0.5;
+
+// testItems
+
+float angle = 0.0f;
+
 
 //Shake bridge on collision
 bool shakeBridge = false;
@@ -274,7 +281,9 @@ int main(int argc, char* argv[])
 				>> trash >> shakeVal
 				>> trash >> asteroidAmount
 				>> trash >> lightval
-				>> trash >> domtest;
+				>> trash >> domtest
+				>> trash >> soundVolume
+				>> trash >> bgVolume;
 	}
 	freader.close();
 
@@ -327,7 +336,7 @@ void myInitOGLFun()
 
 	if (gEngine->isMaster()) {
 		manager.init();
-		soundManager.init();
+		soundManager.init(bgVolume, soundVolume);
 	}
 
 	loadImages();
@@ -632,7 +641,7 @@ void myPostSyncPreDrawFun()
 								
 								if ((*oIterator)->getName() == "Asteroid")
 									billList.push_back(Billboard(5000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
-								else
+								else 
 									billList.push_back(Billboard(1000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
 								if (gEngine->isMaster())
 									soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
@@ -699,6 +708,11 @@ void myPostSyncPreDrawFun()
 				//Update billboards
 				for (list<Billboard>::iterator bIterator = billList.begin(); bIterator != billList.end(); bIterator++)
 				{
+					if (bIterator->getName() == "Crosshair" && angle++ > 400) {
+						//std::cout << "Write stuff\n";
+						bIterator->reScale(0.5 + 0.5 * (glm::sin((angle) / 600)), 1.0f);
+					}
+
 					if (bIterator->isTimed()) {
 						if (bIterator->getLifeTime() <= 0.0) {
 							bIterator->removeBillboard();

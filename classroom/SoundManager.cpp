@@ -43,8 +43,12 @@ SoundManager::~SoundManager() {
 		alcCloseDevice(device);
 }
 
-void SoundManager::init() {
+void SoundManager::init(float _bg, float _sound) {
 	std::cout << "SoundManager initiated!" << std::endl;
+
+	// Set parameters after arguments
+	_bgVolume = _bg;
+	_soundVolume = _sound;
 
 	// Init OpenAL
 	device = alcOpenDevice(NULL);
@@ -75,6 +79,9 @@ void SoundManager::init() {
 //! Plays the score parameter at given position vec3.
 void SoundManager::play(std::string score, osg::Vec3f position) {
 
+	if (_MUTED)
+		return;
+
 	// Convert position glm::vector to ALfloat::array for playback 
 	ALfloat soundPosition[3];
 	soundPosition[0] = position.x();
@@ -83,8 +90,10 @@ void SoundManager::play(std::string score, osg::Vec3f position) {
 
 	//std::cout << soundPosition[0] << " " << position.y() << " " << position.z() << "score = " << score << std::endl;
 
+
 	if (score == "mainMenu_music") {
 		stopMusic();
+		alSourcef(menuMusicSource, AL_GAIN, _bgVolume);
 		alSourcefv(menuMusicSource, AL_POSITION, soundPosition);
 		alSourcei(menuMusicSource, AL_LOOPING, AL_TRUE);
 		alSourcePlay(menuMusicSource);
@@ -94,6 +103,7 @@ void SoundManager::play(std::string score, osg::Vec3f position) {
 	if (score == "preGame_music") {
 		std::cout << "playing preGame_music!" << std::endl;
 		stopMusic();
+		alSourcef(preGameSource, AL_GAIN, _bgVolume);
 		alSourcefv(preGameSource, AL_POSITION, soundPosition);
 		alSourcePlay(preGameSource);
 		currentBackgroundScore = &preGameSource;
@@ -101,6 +111,7 @@ void SoundManager::play(std::string score, osg::Vec3f position) {
 	}
 	if (score == "inGame_music") {
 		stopMusic();
+		alSourcef(inGameSource, AL_GAIN, _bgVolume);
 		alSourcefv(inGameSource, AL_POSITION, soundPosition);
 		alSourcei(inGameSource, AL_LOOPING, AL_TRUE);
 		alSourcePlay(inGameSource);
@@ -108,14 +119,17 @@ void SoundManager::play(std::string score, osg::Vec3f position) {
 		bgIsPlaying = true;
 	}
 	if (score == "gameOver") {
+		alSourcef(gameOverSource, AL_GAIN, _soundVolume);
 		alSourcefv(gameOverSource, AL_POSITION, soundPosition);
 		alSourcePlay(gameOverSource);
 	}
 	if (score == "laser") {
+		alSourcef(laserSource, AL_GAIN, _soundVolume);
 		alSourcefv(laserSource, AL_POSITION, soundPosition);
 		alSourcePlay(laserSource);
 	}
 	if (score == "explosion") {
+		alSourcef(explosionSource, AL_GAIN, _soundVolume);
 		alSourcefv(explosionSource, AL_POSITION, soundPosition);
 		alSourcePlay(explosionSource);
 	}
@@ -209,5 +223,16 @@ ALenum SoundManager::setSoundFormat(short bitsPerSample) {
 			return AL_FORMAT_MONO16;
 		else if (channels == 2)
 			return AL_FORMAT_STEREO16;
+	}
+}
+
+void SoundManager::muteAll() {
+	if (!_MUTED) {
+		stopMusic();
+		_MUTED = true;
+	}
+	else {
+		alSourcePlay(*currentBackgroundScore);
+		_MUTED = false;
 	}
 }

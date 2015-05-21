@@ -20,6 +20,8 @@
 
 #include <osg/Notify>
 #include <osg/Texture2D>
+#include <osg/TextureRectangle>
+#include <osg/TexMat>
 #include <osg/Billboard>
 #include <osg/LineWidth>
 #include <osg/BlendFunc>

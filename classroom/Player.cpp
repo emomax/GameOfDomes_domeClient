@@ -8,6 +8,7 @@ Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::
 	pos = _pos;
 	setName(_name);
 	setHP(_hp);
+	maxHp = hp;
 
 	_scene->addChild(playerTransform);
 	playerTransform->postMult(osg::Matrix::translate(pos));

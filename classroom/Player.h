@@ -31,6 +31,7 @@ public:
 	void setPos(osg::Vec3f _pos) { pos = _pos; }
 	void setScale(float _s) { scale = _s; }
 	int getHP() { return hp; }
+	int getMaxHP() { return maxHp; }
 	void setHP(int _hp) { hp = _hp; }
 
 	void setPlayerTrans(osg::ref_ptr<osg::MatrixTransform> _t) { playerTransform = _t; }
@@ -55,6 +56,7 @@ private:
 		GameObject bridge;
 
 		int hp;
+		int maxHp;
 		float rigidBodyRadius;
 		float scale = 1.0;
 

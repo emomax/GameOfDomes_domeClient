@@ -60,19 +60,25 @@ void SoundManager::init(float _bg, float _sound) {
 
 	/*alGenSources(1, &gameMusicSource);*/
 	alGenSources(1, &inGameSource);
+	alGenSources(1, &inGameLowHPSource);
 	alGenSources(1, &preGameSource);
 	alGenSources(1, &gameOverSource);
 	alGenSources(1, &explosionSource);
 	alGenSources(1, &menuMusicSource);
 	alGenSources(1, &laserSource);
+	alGenSources(1, &laserHitSource);
+	alGenSources(1, &powerupSource);
 
 	/*setSource(&gameMusicSource, "sounds/gameOver2.wav");*/
 	setSource(&inGameSource, "sounds/ingame_strings.wav");
+	setSource(&inGameLowHPSource, "sounds/ingame_lowhp.wav");
 	setSource(&preGameSource, "sounds/pregame2.wav");
 	setSource(&gameOverSource, "sounds/gameOver2.wav");
 	setSource(&explosionSource, "sounds/explosion2.wav");
 	setSource(&menuMusicSource, "sounds/menu2.wav");
 	setSource(&laserSource, "sounds/laser.wav");
+	setSource(&laserHitSource, "sounds/laser_hit.wav");
+	setSource(&powerupSource, "sounds/powerup.wav");
 
 }
 
@@ -118,6 +124,16 @@ void SoundManager::play(std::string score, osg::Vec3f position) {
 		currentBackgroundScore = &inGameSource;
 		bgIsPlaying = true;
 	}
+	if (score == "lowHP_music") {
+		stopMusic();
+		alSourcef(inGameLowHPSource, AL_GAIN, _bgVolume);
+		alSourcefv(inGameLowHPSource, AL_POSITION, soundPosition);
+		alSourcei(inGameLowHPSource, AL_LOOPING, AL_TRUE);
+		alSourcePlay(inGameLowHPSource);
+		currentBackgroundScore = &inGameLowHPSource;
+		bgIsPlaying = true;
+	}
+
 	if (score == "gameOver") {
 		alSourcef(gameOverSource, AL_GAIN, _soundVolume);
 		alSourcefv(gameOverSource, AL_POSITION, soundPosition);
@@ -132,6 +148,16 @@ void SoundManager::play(std::string score, osg::Vec3f position) {
 		alSourcef(explosionSource, AL_GAIN, _soundVolume);
 		alSourcefv(explosionSource, AL_POSITION, soundPosition);
 		alSourcePlay(explosionSource);
+	}
+	if (score == "powerup") {
+		alSourcef(powerupSource, AL_GAIN, _soundVolume);
+		alSourcefv(powerupSource, AL_POSITION, soundPosition);
+		alSourcePlay(powerupSource);
+	}
+	if (score == "laserHit") {
+		alSourcef(laserHitSource, AL_GAIN, _soundVolume);
+		alSourcefv(laserHitSource, AL_POSITION, soundPosition);
+		alSourcePlay(laserHitSource);
 	}
 }
 

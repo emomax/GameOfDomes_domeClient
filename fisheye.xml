@@ -2,7 +2,7 @@
 <Cluster masterAddress="localhost">
 	<Node address="localhost" port="20401">
 		<Window fullscreen="false">
-			<Stereo type="none" />
+			<Stereo type="test" />
 			<Pos x="100" y="0" />
 			<Size x="512" y="512" />
 			<Fisheye fov="165.0" quality="medium" tilt="0.0" />

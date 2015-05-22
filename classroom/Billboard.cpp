@@ -159,6 +159,5 @@ bool Billboard::isTimed()
 
 void Billboard::reScale(float _scaleX, float _scaleY)
 {
-	std::cout << "rescaleing: " << name << " scalex = " << _scaleX << " scaleY =  " << _scaleY << "\n";
 	texMat->setMatrix(osg::Matrix::inverse(osg::Matrix::scale(_scaleX, _scaleY, _scaleX)));
 }

@@ -26,9 +26,12 @@ private:
 	// SFX
 	ALuint explosionSource;
 	ALuint laserSource;
+	ALuint laserHitSource;
+	ALuint powerupSource;
 
 	// SCORES
 	ALuint inGameSource;
+	ALuint inGameLowHPSource;
 	ALuint preGameSource;
 	ALuint menuMusicSource;
 	ALuint gameMusicSource;

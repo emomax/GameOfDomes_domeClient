@@ -8,5 +8,5 @@ ShakeVal:					1.5
 NrOfAsteroids:				50
 LightValue:					2.0
 ExplosionsAndGunnerlimit?	1
-SoundVolume:				0.0
-BackgroundVolume: 			0.0
+SoundVolume:				1.0
+BackgroundVolume: 			1.0

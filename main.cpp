@@ -155,6 +155,9 @@ std::list<Powerup> powerList;
 std::list<GameObject*> objectList;
 
 
+// Game logic stuff and stuffs
+bool hpIsLow = false;
+
 // Manage sound handling
 SoundManager soundManager;
 
@@ -446,6 +449,7 @@ void myPreSyncFun()
 						accRotY += accRotVal;
 					if (Buttons[SHOOT] && fireTimer <= 0.0){
 						//manager.startBenchmarking();
+						soundManager.play("laser", osg::Vec3f(0.0f, 0.0f, 0.0f));
 						fireSync.setVal(true);
 						fireTimer = fireRate;
 					}
@@ -658,8 +662,12 @@ void myPostSyncPreDrawFun()
 								player.setHP(player.getHP() - round(mIterator->getDmg() * eInputEngine));
 							else
 								player.setHP(player.getHP() - round(mIterator->getDmg() * eInputEngine * 0.5));
-							cout << player.getHP() << endl;
-							if (player.getHP() <= 0) {
+							
+							if ((float)player.getHP() / (float)(player.getMaxHP()) < 0.31 && !hpIsLow) {
+								hpIsLow = true;
+								soundManager.play("lowHP_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+							}
+							else if (player.getHP() <= 0) {
 								gameState.setVal(0); //Go back to welcome screen
 								newState.setVal(true);
 								missiles.clear();
@@ -669,6 +677,9 @@ void myPostSyncPreDrawFun()
 								missiles.erase(mIterator);
 								shakeTime = 0.5;
 							}
+
+							soundManager.play("laserHit", osg::Vec3f(0.0f, 0.0f, 0.0f));
+
 							goto stop;		//break all current loops. stop is located directly after the collision handling loops.
 						}
 
@@ -735,8 +746,26 @@ void myPostSyncPreDrawFun()
 					//Check collision with player
 					if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
 					{
-						if (gEngine->isMaster())
+						if (gEngine->isMaster()) {
 							soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
+						}
+
+						//deal damage and end game if below 0 HP
+						if (shieldPowerup <= 0.0)
+							player.setHP(player.getHP() - 70* eInputEngine);
+						else
+							player.setHP(player.getHP() - 70 * eInputEngine * 0.5);
+
+						if ((float)player.getHP() / (float)(player.getMaxHP()) < 0.31 && !hpIsLow) {
+							hpIsLow = true;
+							soundManager.play("lowHP_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+						}
+						else if (player.getHP() <= 0) {
+							gameState.setVal(0); //Go back to welcome screen
+							newState.setVal(true);
+							missiles.clear();
+						}
+
 						(*oIterator)->removeChildModel((*oIterator)->getModel());
 						objectList.erase(oIterator);
 						shakeTime = 0.5;
@@ -795,6 +824,7 @@ void myPostSyncPreDrawFun()
 				{
 					if ((pIterator->getPos() - player.getPos()).length() < pIterator->getColRad() + player.getColRad()) {
 
+
 						if (pIterator->getName() == "SkottPowerup")
 							skottPowerup.setVal(60.0f);
 						if (pIterator->getName() == "ShieldPowerup")
@@ -807,6 +837,8 @@ void myPostSyncPreDrawFun()
 							else
 								player.setHP(500);
 						}
+
+						soundManager.play("powerup", osg::Vec3f(0.0f, 0.0f, 0.0f));
 
 						//Remove from scene graph before deleting the object
 						pIterator->removeChildModel(pIterator->getModel());

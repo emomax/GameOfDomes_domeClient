@@ -7,18 +7,20 @@ Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::
 	rigidBodyRadius = _colRad;
 	pos = _pos;
 	setName(_name);
-	setMaxHP(_hp);
 	setHP(_hp);
-
-	std::cout << "hp is: " << getHP() << " and maxHp is: " << getMaxHP() << std::endl;
+	setMaxHP(_hp);
 
 	_scene->addChild(playerTransform);
 	playerTransform->postMult(osg::Matrix::translate(pos));
 
-	bridgeTransform->postMult(osg::Matrix::rotate(PI + PI / 4.0, 1.0, 0.0, 0.0));
-	bridgeTransform->postMult(osg::Matrix::translate(0.0f, 100.0f, 0.0f));
 
-	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga.ive"), bridgeTransform, 100000);
+	healthbarTransform->postMult(osg::Matrix::rotate(-PI / 8, 1.0f, 0.0f, 0.0f));
+
+	bridgeTransform->postMult(osg::Matrix::rotate(PI + PI / 4.0, 1.0, 0.0, 0.0));
+	bridgeTransform->postMult(osg::Matrix::translate(0.0f, 10.0f, 0.0f));
+	//bridgeTransform->postMult(osg::Matrix::scale(0.1f, 0.1f, 0.1f));
+
+	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga_lasse.ive"), bridgeTransform, 100000);
 }
 
 void Player::initTransform()
@@ -26,13 +28,16 @@ void Player::initTransform()
 	playerTransform = new osg::MatrixTransform();
 	bridgeTransform = new osg::MatrixTransform();
 	gunnerTransform = new osg::MatrixTransform();
+	healthbarTransform = new osg::MatrixTransform();
 	
 	playerTransform->setMatrix(osg::Matrix::identity());
 	bridgeTransform->setMatrix(osg::Matrix::identity());
 	gunnerTransform->setMatrix(osg::Matrix::identity());
+	healthbarTransform->setMatrix(osg::Matrix::identity());
 
 	playerTransform->addChild(bridgeTransform);
 	playerTransform->addChild(gunnerTransform);
+	playerTransform->addChild(healthbarTransform);
 }
 
 void Player::rotateGunnerTrans(osg::Quat _q)
@@ -47,13 +52,19 @@ void Player::resetPlayer()
 	playerTransform->removeChildren(0, playerTransform->getNumChildren());
 	bridgeTransform->removeChildren(0, bridgeTransform->getNumChildren());
 	gunnerTransform->removeChildren(0, gunnerTransform->getNumChildren());
+	healthbarTransform->removeChildren(0, healthbarTransform->getNumChildren());
 }
 
 Player Player::operator=(Player _g)
 {
-	playerTransform = _g.playerTransform;
-	bridgeTransform = _g.bridgeTransform;
-	gunnerTransform = _g.gunnerTransform;
+	if (playerTransform != nullptr)
+		playerTransform = _g.playerTransform;
+	if (bridgeTransform != nullptr)
+		bridgeTransform = _g.bridgeTransform;
+	if (gunnerTransform != nullptr)
+		gunnerTransform = _g.gunnerTransform;
+	if (healthbarTransform != nullptr)
+		healthbarTransform = _g.healthbarTransform;
 
 	pos = _g.pos;
 	hp = _g.hp;
@@ -67,4 +78,8 @@ Player Player::operator=(Player _g)
 	return *this;
 }
 
-
+void Player::reScale(float _scaleX, float _scaleY)
+{
+	std::cout << "rescaling: " << name << " scalex = " << _scaleX << " scaleY =  " << _scaleY << "\n";
+	healthbarTransform->setMatrix(osg::Matrix::inverse(osg::Matrix::scale(_scaleX, _scaleY, _scaleX)));
+}

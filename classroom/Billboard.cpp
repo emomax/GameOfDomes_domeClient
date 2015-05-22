@@ -64,39 +64,50 @@ Billboard::Billboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 	}
 }
 
-Billboard::Billboard(float _scale, osg::Vec3f _pos, osg::ref_ptr<osg::ImageSequence> _sequence, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height, std::string _name) {
+Billboard::Billboard(float _scale, osg::Vec3f _pos, osg::ref_ptr<osg::ImageSequence> _sequence, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height, std::string _name)
+{
+	lifeTime = 10.0f; //Standard lifeTime if nothing else is set
 
-	if (_name == "Explosion") {
-		lifeTime = 30.0f;
-		createExplosion(_scale, _pos, _sequence, _theTrans, _width, _height);
-	}
-	else
-	{
-		//if (_name == "EnemyShield")
-		//	lifeTime = 10.0f;
+	if (_name == "Explosion")
+		lifeTime = 1.2f;
+	if (_name == "EnemyShield")
+		lifeTime = 0.3f;
+	
 
-		//theBillboard = new osg::Billboard();
-		//_theTrans->addChild(theBillboard);
+	theBillboard = new osg::Billboard();
+	_theTrans->addChild(theBillboard);
 
-		//
-		//osg::StateSet* billBoardStateSet = new osg::StateSet;
-		//billBoardStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-		//billBoardStateSet->setTextureAttributeAndModes(0, billboardTexture, osg::StateAttribute::ON);
 
-		//billBoardStateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
-		//billBoardStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
+	//osg::Texture2D *billboardTexture
+	theTexture = new osg::Texture2D;
 
-		//// Enable depth test so that an opaque polygon will occlude a transparent one behind it.
-		//billBoardStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+	_sequence->rewind();
+	_sequence->setLoopingMode(osg::ImageStream::NO_LOOPING);
+	_sequence->play();
 
-		//osg::BlendFunc* bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
-		//billBoardStateSet->setAttributeAndModes(bf, osg::StateAttribute::ON);
+	// set the sequence for playing.
+	theTexture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
+	theTexture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+	theTexture->setImage(_sequence.get());
 
-		//osg::Drawable* billboardDrawable;
-		//billboardDrawable = createDrawable(_scale, billBoardStateSet, _width, _height);
+	osg::StateSet* billBoardStateSet = new osg::StateSet;
+	billBoardStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	billBoardStateSet->setTextureAttributeAndModes(0, theTexture, osg::StateAttribute::ON);
 
-		//theBillboard->addDrawable(billboardDrawable, _pos);
-	}
+	billBoardStateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+	billBoardStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// Enable depth test so that an opaque polygon will occlude a transparent one behind it.
+	billBoardStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+	osg::BlendFunc* bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
+	billBoardStateSet->setAttributeAndModes(bf, osg::StateAttribute::ON);
+
+	osg::Drawable* billboardAnimatable;
+	billboardAnimatable = createDrawable(_scale, billBoardStateSet, _width, _height);
+
+	theBillboard->addDrawable(billboardAnimatable, _pos);
 
 }
 
@@ -136,45 +147,7 @@ osg::Drawable* Billboard::createDrawable(const float & _scale, osg::StateSet* _b
 	return billboardQuad;
 }
 
-void Billboard::createExplosion(float _scale, osg::Vec3f _pos, osg::ref_ptr<osg::ImageSequence> _sequence, osg::ref_ptr<osg::MatrixTransform> _theTrans, float _width, float _height)
-{
 
-	theBillboard = new osg::Billboard();
-	_theTrans->addChild(theBillboard);
-
-
-	theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
-	//osg::Texture2D *billboardTexture
-	theTexture = new osg::Texture2D;
-	
-	_sequence->rewind();
-	_sequence->setLoopingMode(osg::ImageStream::NO_LOOPING);
-	_sequence->play();
-
-	// set the sequence for playing.
-	theTexture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
-	theTexture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-	theTexture->setImage(_sequence.get());
-
-	osg::StateSet* billBoardStateSet = new osg::StateSet;
-	billBoardStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-	billBoardStateSet->setTextureAttributeAndModes(0, theTexture, osg::StateAttribute::ON);
-
-	billBoardStateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
-	billBoardStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// Enable depth test so that an opaque polygon will occlude a transparent one behind it.
-	billBoardStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
-
-	osg::BlendFunc* bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
-	billBoardStateSet->setAttributeAndModes(bf, osg::StateAttribute::ON);
-
-	osg::Drawable* billboardAnimatable;
-	billboardAnimatable = createDrawable(_scale, billBoardStateSet, _width, _height);
-
-	theBillboard->addDrawable(billboardAnimatable, _pos);
-
-}
 
 bool Billboard::isTimed()
 {
@@ -184,47 +157,8 @@ bool Billboard::isTimed()
 	return true;
 }
 
-void Billboard::reScale(float _scaleX, float _scaleY) {
-
-	//float _width = width * _scaleX;
-	//float _height = height * _scaleY;
-
-	
-	//return;
-	//float _width = width *-_scaleX;// * _scaleX;
-	//float _height = height * -_scaleY;// * _scaleY;
-	texMat->setMatrix(osg::Matrix::inverse(osg::Matrix::scale(_scaleX, _scaleY, 1.0f)));
-
-	//std::cout << width /*theRect->getTextureWidth()*/ << " is the width!\n";
-	return;
-	
-
-
-
-	std::cout << "Billboard::reScale was called! reScale to: (" << _scaleX << ", " << _scaleY << ") \n";
-	if (theImage->valid()) {
-		std::cout << "valid image!\n";
-	}
-	else {
-		std::cout << "invalid image!\n";
-	}
-
-
-
-	//(*theImage).scaleImage(1.0f, 1.0f, 1.0f);
-
-	//osg::Texture2D* tex = new osg::TextureRectangle;
-
-	//theTexture->getImage()->scaleImage(0.5f, _scaleY, 1.0f);
-	
-
-		/*
-	osg::Vec3Array* crosshairVerts = new osg::Vec3Array(4);
-	(*crosshairVerts)[0] = osg::Vec3(-_width / 2.0f, 0, -_height / 2.0f);
-	(*crosshairVerts)[1] = osg::Vec3(_width / 2.0f, 0, -_height / 2.0f);
-	(*crosshairVerts)[2] = osg::Vec3(_width / 2.0f, 0, _height / 2.0f);
-	(*crosshairVerts)[3] = osg::Vec3(-_width / 2.0f, 0, _height / 2.0f);
-
-	billboardQuad->setVertexArray(crosshairVerts);*/
-
+void Billboard::reScale(float _scaleX, float _scaleY)
+{
+	std::cout << "rescaleing: " << name << " scalex = " << _scaleX << " scaleY =  " << _scaleY << "\n";
+	texMat->setMatrix(osg::Matrix::inverse(osg::Matrix::scale(_scaleX, _scaleY, _scaleX)));
 }

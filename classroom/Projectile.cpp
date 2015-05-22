@@ -1,6 +1,6 @@
 #include "Projectile.h"
 
-Projectile::Projectile(std::string _name, osg::Vec3f _pos, osg::Vec3f _dir, osg::Quat _orientation, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, float _dmg, float _vel)
+Projectile::Projectile(std::string _name, osg::Vec3f _pos, osg::Vec3f _dir, osg::Quat _orientation, std::string _model, osg::ref_ptr<osg::MatrixTransform> _scene, float _dmg, float _vel, bool _playerOwned)
 {
 	initTransform();
 	setVel(_vel);
@@ -12,7 +12,8 @@ Projectile::Projectile(std::string _name, osg::Vec3f _pos, osg::Vec3f _dir, osg:
 	setDescr((std::string)("bangbang"));
 	_scene->addChild(getTrans());
 	damage = _dmg;
-	lifeTime = 5.0f;
+	lifeTime = 3.0f;
+	playerOwned = _playerOwned;
 
 	setModel(_model);
 }
@@ -29,6 +30,7 @@ Projectile Projectile::operator=(Projectile _p)
 
 	damage = _p.damage;
 	lifeTime = _p.lifeTime;
+	playerOwned = _p.playerOwned;
 
 	return *this;
 }

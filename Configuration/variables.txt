@@ -1,12 +1,12 @@
 RotationalAcceleration: 	0.01
 MaxRotationalAcceleration: 	0.4
-TrushAcceleration: 			1.2
-MaxThrustAcceleration: 		80.0
+TrushAcceleration: 			2.4
+MaxThrustAcceleration: 		160.0
 FireRate(seconds/laser):	0.4
 ProjectileVelocity:			12000
-ShakeVal:					2.5
+ShakeVal:					1.5
 NrOfAsteroids:				50
 LightValue:					2.0
 ExplosionsAndGunnerlimit?	1
 SoundVolume:				0.0
-BackgroundVolume: 		0.0
+BackgroundVolume: 			0.0

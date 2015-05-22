@@ -46,8 +46,8 @@ private:
 
 	// GLOBALS
 	bool _MUTED = false;
-	float _bgVolume = 1.0;
-	float _soundVolume = 1.0;
+	float _bgVolume = 1.0f;
+	float _soundVolume = 1.0f;
 
 	void setSource(ALuint *source, char *url);
 	ALenum setSoundFormat(short bitsPerSample);

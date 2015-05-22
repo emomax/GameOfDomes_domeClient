@@ -4,6 +4,7 @@
 class Object : public osg::Transform
 {
 public:
+
 	float getVel() { return velocity; }
 	osg::Vec3f getDir() { return direction; }
 	osg::Quat getOrientation() { return orientation; }

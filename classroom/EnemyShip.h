@@ -16,8 +16,7 @@ private:
 	float attackCooldown;
 	float homingMissileAttackCooldown;
 
-	//Used for rotational purposes
-	osg::Vec3f upDir;
+	
 
 	enum currState;
 };

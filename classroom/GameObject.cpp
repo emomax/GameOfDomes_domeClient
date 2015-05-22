@@ -14,7 +14,6 @@ GameObject::GameObject(std::string _name, osg::Vec3f _pos, float _colRad, int _h
 	_scene->addChild(getTrans());
 	setID(_id);
 	setModel(_model);
-	setScale(1.0f);
 }
 
 void GameObject::setModel(std::string _fileName)

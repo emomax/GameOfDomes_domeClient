@@ -25,6 +25,7 @@ public:
 	osg::ref_ptr<osg::MatrixTransform> getPlayerTrans() { return playerTransform; }
 	osg::ref_ptr<osg::MatrixTransform> getBridgeTrans() { return bridgeTransform; }
 	osg::ref_ptr<osg::MatrixTransform> getGunnerTrans() { return gunnerTransform; }
+	osg::ref_ptr<osg::MatrixTransform> getHealthbarTrans() { return healthbarTransform; }
 	std::string getName() { return name; }
 
 	void initTransform();
@@ -32,15 +33,17 @@ public:
 	void setScale(float _s) { scale = _s; }
 	int getHP() { return hp; }
 	int getMaxHP() { return maxHp; }
-
 	void setHP(int _hp) { hp = _hp; }
 	void setMaxHP(int _hp) { maxHp = _hp; }
 
 	void setPlayerTrans(osg::ref_ptr<osg::MatrixTransform> _t) { playerTransform = _t; }
 	void setBridgeTrans(osg::ref_ptr<osg::MatrixTransform> _t) { bridgeTransform = _t; }
+	void setHealthbarTrans(osg::ref_ptr<osg::MatrixTransform> _t) { healthbarTransform = _t; }
 	void rotateGunnerTrans(osg::Quat _q);
 
 	void resetPlayer();
+
+	void reScale(float _scaleX, float _scaleY);
 
 	void setName(std::string _n) { name = _n; }
 
@@ -52,6 +55,7 @@ private:
 		osg::ref_ptr<osg::MatrixTransform> playerTransform;
 		osg::ref_ptr<osg::MatrixTransform> bridgeTransform;
 		osg::ref_ptr<osg::MatrixTransform> gunnerTransform;
+		osg::ref_ptr<osg::MatrixTransform> healthbarTransform;
 		
 		osg::Vec3f pos = osg::Vec3f(0,0,0);
 

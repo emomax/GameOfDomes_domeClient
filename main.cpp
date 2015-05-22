@@ -475,10 +475,16 @@ void myPreSyncFun()
 
 
 					//Set direction and position of player
-					rotX = accRotX * gEngine->getDt();
-					rotY = accRotY * gEngine->getDt();
-					rotZ = accRotZ * gEngine->getDt();
-
+					if (enginePowerup <= 0.0) {
+						rotX = accRotX * gEngine->getDt();
+						rotY = accRotY * gEngine->getDt();
+						rotZ = accRotZ * gEngine->getDt();
+					}
+					else {
+						rotX = accRotX * gEngine->getDt() * 2.0;
+						rotY = accRotY * gEngine->getDt() * 2.0;
+						rotZ = accRotZ * gEngine->getDt() * 2.0;
+					}
 					//Get player local coordinate system
 					osg::Vec3f normal1 = osg_forward_dir;
 					osg::Vec3f normal2 = osg_up_dir;
@@ -815,16 +821,19 @@ void myPostSyncPreDrawFun()
 				//Shake camera on player collision with objects
 				if (shakeTime > 0.0) {
 
-					float rand1 = 0;
-					float rand2 = 0;
+					float angleX = 0;
+					float angleY = 0;
 
 					//Generate frequency range from 300 to 310 Hz
 					for (int i = 300; i < 310; i++) {
-						rand1 += sin(i*shakeTime);
-						rand2 += cos(i*shakeTime);
+						angleX += sin(i*shakeTime);
+						angleY += cos(i*shakeTime);
 					}
 
-					mNavTrans->preMult(osg::Matrix::rotate(shakeVal*gEngine->getDt(), rand1, rand2, 0));
+					if (shieldPowerup <= 0.0)
+						mNavTrans->preMult(osg::Matrix::rotate(shakeVal*gEngine->getDt(), angleX, angleY, 0));
+					else
+						mNavTrans->preMult(osg::Matrix::rotate(shakeVal*gEngine->getDt()*0.5, angleX, angleY, 0));
 					shakeTime -= gEngine->getDt();
 				}
 				

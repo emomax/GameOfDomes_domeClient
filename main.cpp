@@ -5,8 +5,8 @@ osgExample_sfs
 #include "sgct.h"
 
 /* Custom items */
-#include "classroom\Includes.h"
 #include "classroom\Utilities.h"
+#include "classroom\Includes.h"
 #include "classroom\Projectile.h"
 #include "classroom\EnemyShip.h"
 #include "classroom\Player.h"

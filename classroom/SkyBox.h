@@ -1,6 +1,8 @@
 #pragma once
 
-#include <osgViewer/Viewer>
+#include "Includes.h"
+/*
+<osgViewer/Viewer>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
 #include <osg/ComputeBoundsVisitor>
@@ -18,7 +20,7 @@
 #include <osg/Geode>
 #include <osgDB/ReadFile>
 #include <osgUtil/CullVisitor>
-
+*/
 class SkyBox : public osg::Transform
 {
 public:

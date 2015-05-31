@@ -6,7 +6,7 @@ Projectile::Projectile(std::string _name, osg::Vec3f _pos, osg::Vec3f _dir, osg:
 	setVel(_vel);
 	setDir(_dir);
 	setOrientation(_orientation);
-	setColRad(50.0f);
+	setColRad(75.0f);
 	translate(_pos);
 	setName(_name);
 	setDescr((std::string)("bangbang"));

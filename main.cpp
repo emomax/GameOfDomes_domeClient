@@ -5,8 +5,8 @@ osgExample_sfs
 #include "sgct.h"
 
 /* Custom items */
-#include "classroom\Utilities.h"
 #include "classroom\Includes.h"
+#include "classroom\Utilities.h"
 #include "classroom\Projectile.h"
 #include "classroom\EnemyShip.h"
 #include "classroom\Player.h"
@@ -54,6 +54,8 @@ void setupLightSource();
 
 //variables to share across cluster
 sgct::SharedFloat curr_time(0.0);			//Current game time
+sgct::SharedFloat currDt(0.0);
+sgct::SharedFloat demoTime(5.0);
 
 sgct::SharedFloat playerPosX(0.0);	//Initialize player vector and quaternions. SGCT and SFS does
 sgct::SharedFloat playerPosY(-50.0);	//not like shared arrays, so every value is saved individually.
@@ -69,7 +71,8 @@ sgct::SharedFloat gunnerQuatW(0.0);
 sgct::SharedFloat skottPowerup(0.0);	//becomes a timer when active
 sgct::SharedFloat shieldPowerup(0.0);
 sgct::SharedFloat enginePowerup(0.0);
-
+sgct::SharedFloat shakeTime(0.0);
+sgct::SharedInt hp(500);
 sgct::SharedBool fireSync(false);
 sgct::SharedInt randomSeed(0);
 
@@ -100,24 +103,22 @@ float projectileVelocity = 12000.0;
 float shakeVal = 2.5;
 float soundVolume = 1.0f;
 float bgVolume = 1.0f;
-
+float sceneAngle = PI / 4;
+int bridgemodel = 1;
+bool domtest = false;
 
 float navigationSpeed = 0.0; // Current player speed
 float accRotX = 0.0, accRotY = 0.0, accRotZ = 0.0;	//rotational acceleration
 float rotX = 0.0, rotY = 0.0, rotZ = 0.0;		//rotational velocity
 float accThrust = 0.0;
 float fireTimer = 0.0;
-float shakeTime = 0.0;
 int asteroidAmount = 1;
 float lightval = 0.8;
-bool domtest = false;
 
 double gInputRotX = 0.0, gInputRotY = 0.0;
 double pInputRotX = 0.0, pInputRotY = 0.0, pInputRotZ = 0.0;
 double eInputEngine = 0.5, eInputShield = 0.5, eInputTurret = 0.5;
 
-//Shake bridge on collision
-bool shakeBridge = false;
 
 //Global index for objects in scene
 int objIndex = 0;
@@ -128,7 +129,7 @@ int lightIndex = 0;
 GameLight sunLight;
 GameLight playerLight;
 
-float demoTime = 5.0;
+
 
 //(0, forward_dir)
 osg::Quat baseQuat = osg::Quat(0, 0, 1, 0);
@@ -217,13 +218,14 @@ void NetworkManager::OnSmartFoxExtensionResponse(unsigned long long ptrContext, 
 	}
 
 	if (*ptrNotifiedCmd == "GunnerEvent") {
-
 		boost::shared_ptr<void> ptrEventParamValueParams = (*ptrEventParams)["params"];
 		boost::shared_ptr<ISFSObject> ptrNotifiedISFSObject = ((boost::static_pointer_cast<ISFSObject>)(ptrEventParamValueParams));
 
-		gInputRotX = *(ptrNotifiedISFSObject->GetDouble("sgctRotX")) * 1.5;
-		gInputRotY = *(ptrNotifiedISFSObject->GetDouble("sgctRotY")) * 1.5;
+		gInputRotX = *(ptrNotifiedISFSObject->GetDouble("sgctRotX")) * 3.0;
+		gInputRotY = *(ptrNotifiedISFSObject->GetDouble("sgctRotY")) * 3.0;
 		bool fire = *(ptrNotifiedISFSObject->GetBool("sgctFire"));
+
+		
 
 		if (fire && fireTimer <= 0.0) {
 			//if (gEngine->isMaster())
@@ -299,7 +301,9 @@ int main(int argc, char* argv[])
 			>> trash >> lightval
 			>> trash >> domtest
 			>> trash >> soundVolume
-			>> trash >> bgVolume;
+			>> trash >> bgVolume
+			>> trash >> bridgemodel
+			>> trash >> sceneAngle;
 	}
 	freader.close();
 
@@ -312,7 +316,7 @@ int main(int argc, char* argv[])
 	gEngine->setDrawFunction(myDrawFun);
 	gEngine->setCleanUpFunction(myCleanUpFun);
 	gEngine->setKeyboardCallbackFunction(keyCallback);
-
+	
 
 	//fix incompability with warping and OSG
 	sgct_core::ClusterManager::instance()->setMeshImplementation(sgct_core::ClusterManager::DISPLAY_LIST);
@@ -358,10 +362,10 @@ void myInitOGLFun()
 	loadImages();
 
 
-	//Generate random seed. (0-1000)
+	//Generate random seed
 	if (gEngine->isMaster()) {
 		srand(time(NULL));
-		randomSeed.setVal((rand() / RAND_MAX)* 1000);
+		randomSeed.setVal((rand()));
 	}
 
 	//Initialize scene graph transforms. mRootNode is initialized in the InitOSG() function
@@ -379,7 +383,7 @@ void myInitOGLFun()
 
 	//Transform to scene transformation from configuration file and apply static rotation to compensate for OSG-SGCT
 	mRootTrans->setMatrix(osg::Matrix(glm::value_ptr(gEngine->getModelMatrix())));
-	mRootTrans->postMult(osg::Matrix::rotate(-PI / 2.0 + PI / 4.0, 1.0, 0.0, 0.0));	//+PI/4 is used to compensate for the fisheye view of the dome
+	mRootTrans->postMult(osg::Matrix::rotate(-PI / 2.0 + sceneAngle, 1.0, 0.0, 0.0));	//+PI/4 is used to compensate for the fisheye view of the dome
 
 
 	//Setup the lightsource
@@ -398,8 +402,9 @@ void myPreSyncFun()
 	{
 		//Update random seed
 		randomSeed.setVal(rand());
-		//Update current time
+		//Update current time and current delta time
 		curr_time.setVal(sgct::Engine::getTime());
+		currDt.setVal(gEngine->getDt());
 
 		if (checkIfImAwake < curr_time.getVal()) {
 			manager.alarm();
@@ -457,37 +462,37 @@ void myPreSyncFun()
 
 					//Cooldown time for the gunner laser
 					if (fireTimer > 0.0)
-						fireTimer -= gEngine->getDt();
+						fireTimer -= currDt.getVal();
 
 
-					//Update pilot values. Energy loss is used for retardation of the ship.
-					navigationSpeed = navigationSpeed * 0.97;
-					accRotX = accRotX*0.97;
-					accRotY = accRotY*0.97;
-					accRotZ = accRotZ*0.97;
-					gInputRotX = gInputRotX * 0.70;
-					gInputRotY = gInputRotY * 0.70;
+					//Update pilot and gunner values. Energy loss is used for retardation of the ship.
+					navigationSpeed = navigationSpeed * (1 - currDt.getVal());
+					accRotX = accRotX * (1 - currDt.getVal());
+					accRotY = accRotY * (1 - currDt.getVal());
+					accRotZ = accRotZ * (1 - currDt.getVal());
+					gInputRotX = gInputRotX * (1 - 8 * currDt.getVal());
+					gInputRotY = gInputRotY * (1 - 8 * currDt.getVal());
 
 					//Get new forward direction and player position.
 					//Transformations are inversed because world moves relative to the camera.
 					osg_forward_dir = baseQuat * osg::Vec3f(0, -1, 0);
 					osg_up_dir = baseQuat * osg::Vec3f(0, 0, -1);
-					player.setPos(player.getPos() - osg_forward_dir * navigationSpeed);	//Minus for inverse navigation
-
+					player.setPos(player.getPos() - osg_forward_dir * navigationSpeed * currDt.getVal());	//Minus for inverse navigation
+					
 					gunner_side = gunnerQuat * osg::Vec3f(1, 0, 0);
 					gunner_up = gunnerQuat * osg::Vec3f(0, 0, 1);
 
 
 					//Set direction and position of player
 					if (enginePowerup <= 0.0) {
-						rotX = accRotX * gEngine->getDt();
-						rotY = accRotY * gEngine->getDt();
-						rotZ = accRotZ * gEngine->getDt();
+						rotX = accRotX * currDt.getVal();
+						rotY = accRotY * currDt.getVal();
+						rotZ = accRotZ * currDt.getVal();
 					}
 					else {
-						rotX = accRotX * gEngine->getDt() * 2.0;
-						rotY = accRotY * gEngine->getDt() * 2.0;
-						rotZ = accRotZ * gEngine->getDt() * 2.0;
+						rotX = accRotX * currDt.getVal() * 2.0;
+						rotY = accRotY * currDt.getVal() * 2.0;
+						rotZ = accRotZ * currDt.getVal() * 2.0;
 					}
 					//Get player local coordinate system
 					osg::Vec3f normal1 = osg_forward_dir;
@@ -506,33 +511,32 @@ void myPreSyncFun()
 
 					//Set direction for the gunner crosshair.
 					//External input uses X- and Y coordinates which is translated to X- and Z in SGCT
-					osg::Quat gRX = osg::Quat(gInputRotX * gEngine->getDt(), gunner_up);
-					osg::Quat gRZ = osg::Quat(-gInputRotY * gEngine->getDt(), gunner_side);
+					osg::Quat gRX = osg::Quat(gInputRotX * currDt.getVal(), gunner_up);
+					osg::Quat gRZ = osg::Quat(-gInputRotY * currDt.getVal(), gunner_side);
 
 					gunnerQuat = gunnerQuat * gRX.conj();
 					gunnerQuat = gunnerQuat * gRZ.conj();
 
 					osg::Vec3f tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
-					float angle = acos(tempVec*osg::Vec3f(0, 1, 0));
+					float angle = acos(tempVec*osg::Vec3f(0, 1, 1));
 
 					if (domtest) {
 						//Limit gunner crosshair to 1.2 radians from center and to positive z
-						if (angle > 1.2) {
-							osg::Vec3f tempVec2 = tempVec^osg::Vec3f(0, 1, 0);
+						if (angle > (165.0*PI) / 360.0) {
+							osg::Vec3f tempVec2 = tempVec^osg::Vec3f(0, 1, 1);
 
 							//If outside of bound, "bubble" back with small steps until inside
-							while (angle > 1.2) {
+							while (angle > (165.0*PI) / 360.0) {
 								gunnerQuat = gunnerQuat * osg::Quat(0.002, tempVec2);
 								tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
-								angle = acos(tempVec*osg::Vec3f(0, 1, 0));
+								angle = acos(tempVec*osg::Vec3f(0, 1, 1));
 							}
 						}
 
-						while (tempVec.z() < 0.0){
-							cout << tempVec.z() << endl;
-							gunnerQuat = gunnerQuat * osg::Quat(0.002, osg::Vec3(1, 0, 0));
-							tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
-						}
+						//while (tempVec.z() < -0.3){
+						//	gunnerQuat = gunnerQuat * osg::Quat(0.002, osg::Vec3(1, 0, 0));
+						//	tempVec = gunnerQuat * osg::Vec3f(0, 1, 0);
+						//}
 					}
 
 					//Sync values with all nodes
@@ -547,373 +551,379 @@ void myPreSyncFun()
 					gunnerQuatY.setVal(gunnerQuat.y());
 					gunnerQuatZ.setVal(gunnerQuat.z());
 					gunnerQuatW.setVal(gunnerQuat.w());
+
 		}
 			break;
 
 		}
 	}
+
 }
 
 void myPostSyncPreDrawFun()
 {
-	//setGameState is called for all nodes if newState is true
-	if (newState.getVal()) {
-		setGameState(gameState.getVal(), objIndex, objectList, billList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager, randomSeed.getVal(), asteroidAmount, gEngine->isMaster());
-		newState.setVal(false);
-	}
+		//setGameState is called for all nodes if newState is true
+		if (newState.getVal()) {
+			missiles.clear();
+			hpIsLow = false;
+			setGameState(gameState.getVal(), objIndex, objectList, billList, player, mNavTrans, mRootTrans, mSceneTrans, mWelcomeTrans, soundManager,
+				randomSeed.getVal(), asteroidAmount, gEngine->isMaster(), bridgemodel);
+			newState.setVal(false);
+		}
 
 
-	switch (gameState.getVal()) {
-		//Welcome Screen
-	case 0: {
-				// DO NOTHING FOR NOW. MAYBE SHOW BILLBOARD 
-				mNavTrans->postMult(osg::Matrix::rotate(0.03*gEngine->getDt(), -1.0, 0.1, 0.1));
-	}
-		break;
+		switch (gameState.getVal()) {
+			//Welcome Screen
+		case 0: {
+					// DO NOTHING FOR NOW. MAYBE SHOW BILLBOARD 
+					mNavTrans->postMult(osg::Matrix::rotate(0.03*gEngine->getDt(), -1.0, 0.1, 0.1));
+		}
+			break;
 
-		//Game Screen
-	case 1: {
+			//Game Screen
+		case 1: {
+					//Sync updated quaternions and vector with slave nodes
+					baseQuat = osg::Quat(baseQuatX.getVal(), baseQuatY.getVal(), baseQuatZ.getVal(), baseQuatW.getVal());
+					gunnerQuat = osg::Quat(gunnerQuatX.getVal(), gunnerQuatY.getVal(), gunnerQuatZ.getVal(), gunnerQuatW.getVal());
+					player.setPos(osg::Vec3f(playerPosX.getVal(), playerPosY.getVal(), playerPosZ.getVal()));
 
-				//Demotest. Spawn enemies every 3 second.
-				if (demoTime < 0.0)
-				{
-					int rand1 = 5000 - (randomSeed.getVal() * 3571 + 997) % 10000;
-					int rand2 = 5000 - ((5000 + rand1) * 3571 + 997) % 10000;
-					int rand3 = 5000 - ((5000 + rand2) * 3571 + 997) % 10000;
-					randomSeed.setVal(5000 + rand3);
-					objectList.push_back(new EnemyShip((std::string)("Enemy"), player.getPos() + osg::Vec3f((float)rand1, (float)rand2, (float)rand3), 300.0f, (std::string)("models/fiendeskepp.ive"), mSceneTrans, 120, objIndex++));
-					demoTime = 10.0;
-				}
-				demoTime -= gEngine->getDt();
-
-				if (fireSync.getVal())
-				{
-					//Add and then sort new projectiles in the missile vector.
-					osg::Vec3f tempVec = (gunnerQuat * baseQuat) * osg::Vec3f(0, 1, 0);
-					osg::Quat tempDir = gunnerQuat * baseQuat;
-
-					if (skottPowerup <= 0.0) {
-						missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200.0, 0.0, 0.0), tempVec, tempDir, (std::string)("models/skottr.ive"), mSceneTrans, 50, navigationSpeed + projectileVelocity, true));
-						missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200.0, 0.0, 0.0), tempVec, tempDir, (std::string)("models/skottr.ive"), mSceneTrans, 50, navigationSpeed + projectileVelocity, true));
-					}
-					else {
-						//SkottPowerup active
-						missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(200.0, 0.0, 0.0), tempVec, tempDir, (std::string)("models/skottb.ive"), mSceneTrans, 150, navigationSpeed + projectileVelocity, true));
-						missiles.push_back(Projectile((std::string)("Laser"), player.getPos() + baseQuat * osg::Vec3f(-200.0, 0.0, 0.0), tempVec, tempDir, (std::string)("models/skottb.ive"), mSceneTrans, 150, navigationSpeed + projectileVelocity, true));
-					}
-
-					fireSync.setVal(false);
-				}
-
-				//Check OsgExample settings
-				gEngine->setWireframe(wireframe.getVal());
-				gEngine->setDisplayInfoVisibility(info.getVal());
-				gEngine->setStatsGraphVisibility(stats.getVal());
-
-				//Enable or disable light with the L button
-				light.getVal() ? mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
-					mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
-
-
-				//Sync updated quaternions and vector
-				baseQuat = osg::Quat(baseQuatX.getVal(), baseQuatY.getVal(), baseQuatZ.getVal(), baseQuatW.getVal());
-				gunnerQuat = osg::Quat(gunnerQuatX.getVal(), gunnerQuatY.getVal(), gunnerQuatZ.getVal(), gunnerQuatW.getVal());
-				player.setPos(osg::Vec3f(playerPosX.getVal(), playerPosY.getVal(), playerPosZ.getVal()));
-
-
-				//Perform matrix transformations
-
-				//Player translation and rotation
-				mNavTrans->setMatrix(osg::Matrix::identity());
-
-				mNavTrans->postMult(osg::Matrix::rotate(baseQuat));
-				mNavTrans->postMult(osg::Matrix::translate(player.getPos()));
-				mNavTrans->setMatrix(mNavTrans->getInverseMatrix());
-
-				//Gunner rotation
-				player.rotateGunnerTrans(gunnerQuat);
-
-
-				//Collision handling. This should probably get moved into its own class
-				//When an object is removed, the iterator list will become wrong. Therefore a stop command is used to break the loops after removal.
-
-				//Move, remove and check collisions for missiles.
-				for (list<Projectile>::iterator mIterator = missiles.begin(); mIterator != missiles.end(); mIterator++)
-				{
-					//Reduce lifetime of missile
-					mIterator->setLifeTime(mIterator->getLifeTime() - gEngine->getDt());
-					if (mIterator->getLifeTime() < 0.0f)
+					//Demotest. Spawn enemies every 3 second.
+					if (demoTime.getVal() < 0.0)
 					{
-						//Remove from scene graph before deleting the object
-						mIterator->removeChildModel(mIterator->getModel());
-						missiles.erase(mIterator);
-						goto stop;
+						int rand1 = 5000 - (randomSeed.getVal() * 3571 + 997) % 10000;
+						int rand2 = 5000 - ((5000 + rand1) * 3571 + 997) % 10000;
+						int rand3 = 5000 - ((5000 + rand2) * 3571 + 997) % 10000;
+						objectList.push_back(new EnemyShip("Enemy", player.getPos() + osg::Vec3f((float)rand1, (float)rand2, (float)rand3), 400.0f, "models/fiendeskepp.ive", mSceneTrans, 120, objIndex++));
+						demoTime.setVal(10.0);
 					}
-					else
+					demoTime.setVal(demoTime.getVal() - currDt.getVal());
+
+					if (fireSync.getVal())
 					{
-						mIterator->translate(mIterator->getDir()*mIterator->getVel()*gEngine->getDt());
+						//Add and then sort new projectiles in the missile vector.
+						osg::Vec3f tempVec = (gunnerQuat * baseQuat) * osg::Vec3f(0, 1, 0);
+						osg::Quat tempDir = gunnerQuat * baseQuat;
 
-
-						//Collision check with player
-						if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() + player.getColRad() && mIterator->getPlayerOwned() == false)
-						{
-							//deal damage and end game if below 0 HP
-							if (shieldPowerup <= 0.0)
-								player.setHP(player.getHP() - round(mIterator->getDmg() * eInputEngine));
-							else
-								player.setHP(player.getHP() - round(mIterator->getDmg() * eInputEngine * 0.5));
-							
-							if ((float)player.getHP() / (float)(player.getMaxHP()) < 0.31 && !hpIsLow) {
-								hpIsLow = true;
-								soundManager.play("lowHP_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
-							}
-							else if (player.getHP() <= 0) {
-								gameState.setVal(0); //Go back to welcome screen
-								newState.setVal(true);
-								missiles.clear();
-							}
-							else {
-								mIterator->removeChildModel(mIterator->getModel());
-								missiles.erase(mIterator);
-								shakeTime = 0.5;
-							}
-
-							soundManager.play("laserHit", osg::Vec3f(0.0f, 0.0f, 0.0f));
-
-							goto stop;		//break all current loops. stop is located directly after the collision handling loops.
+						if (skottPowerup <= 0.0) {
+							missiles.push_back(Projectile("Laser", player.getPos() + baseQuat * osg::Vec3f(200.0, 0.0, 0.0), tempVec, tempDir, "models/skottr.ive", mSceneTrans, 50, navigationSpeed + projectileVelocity, true));
+							missiles.push_back(Projectile("Laser", player.getPos() + baseQuat * osg::Vec3f(-200.0, 0.0, 0.0), tempVec, tempDir, "models/skottr.ive", mSceneTrans, 50, navigationSpeed + projectileVelocity, true));
+						}
+						else {
+							//SkottPowerup active
+							missiles.push_back(Projectile("Laser", player.getPos() + baseQuat * osg::Vec3f(200.0, 0.0, 0.0), tempVec, tempDir, "models/skottb.ive", mSceneTrans, 150, navigationSpeed + projectileVelocity, true));
+							missiles.push_back(Projectile("Laser", player.getPos() + baseQuat * osg::Vec3f(-200.0, 0.0, 0.0), tempVec, tempDir, "models/skottb.ive", mSceneTrans, 150, navigationSpeed + projectileVelocity, true));
 						}
 
-						//Collision check with objects in the scene
-						for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
+						fireSync.setVal(false);
+					}
+
+					//Check OsgExample settings
+					gEngine->setWireframe(wireframe.getVal());
+					gEngine->setDisplayInfoVisibility(info.getVal());
+					gEngine->setStatsGraphVisibility(stats.getVal());
+
+					//Enable or disable light with the L button
+					light.getVal() ? mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
+						mRootNode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+
+
+					//Perform matrix transformations
+
+					//Player translation and rotation
+					mNavTrans->setMatrix(osg::Matrix::identity());
+
+					mNavTrans->postMult(osg::Matrix::rotate(baseQuat));
+					mNavTrans->postMult(osg::Matrix::translate(player.getPos()));
+					mNavTrans->setMatrix(mNavTrans->getInverseMatrix());
+					//Gunner rotation
+					player.rotateGunnerTrans(gunnerQuat);
+
+
+					//Collision handling. This should probably get moved into its own class
+					//When an object is removed, the iterator list will become wrong. Therefore a stop command is used to break the loops after removal.
+
+					//Move, remove and check collisions for missiles.
+					for (list<Projectile>::iterator mIterator = missiles.begin(); mIterator != missiles.end(); mIterator++)
+					{
+						//Reduce lifetime of missile
+						mIterator->setLifeTime(mIterator->getLifeTime() - currDt.getVal());
+						if (mIterator->getLifeTime() < 0.0f)
 						{
-							if ((mIterator->getPos() - (*oIterator)->getPos()).length() < mIterator->getColRad() + (*oIterator)->getColRad())
+							//Remove from scene graph before deleting the object
+							mIterator->removeChildModel(mIterator->getModel());
+							missiles.erase(mIterator);
+							goto stop;
+						}
+						else
+						{
+							mIterator->translate(mIterator->getDir()*mIterator->getVel()*currDt.getVal());
+							
+							//Collision check with player
+							if ((mIterator->getPos() - player.getPos()).length() < mIterator->getColRad() + player.getColRad() && mIterator->getPlayerOwned() == false)
 							{
-								(*oIterator)->setHP((*oIterator)->getHP() - mIterator->getDmg());
-								if ((*oIterator)->getHP() <= 0) {
-									(*oIterator)->removeChildModel((*oIterator)->getModel());
+								if (gEngine->isMaster()) {
+									//deal damage and end game if below 0 HP
+									if (shieldPowerup <= 0.0)
+										player.setHP(player.getHP() - round(mIterator->getDmg() * eInputEngine));
+									else
+										player.setHP(player.getHP() - round(mIterator->getDmg() * eInputEngine * 0.5));
 
-									if ((*oIterator)->getName() == "Asteroid") {
-										billList.push_back(Billboard(5000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
-
-										//50% chance to spawn health powerup
-										if (randomValue(randomSeed.getVal()) > 50) {
-											powerList.push_back(Powerup((std::string)("HealthPowerup"), (*oIterator)->getPos(), (std::string)("models/health_powerup.ive"), mSceneTrans));
-										}
+									if ((float)player.getHP() / (float)(player.getMaxHP()) < 0.31 && !hpIsLow) {
+										hpIsLow = true;
+										soundManager.play("lowHP_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
 									}
-									if ((*oIterator)->getName() == "Enemy") {
-										billList.push_back(Billboard(1000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
 
-										//70% chance to spawn powerup (25% Health, 15% skott, 15% shield, 15% engine)
-										if (randomValue(randomSeed.getVal()) > 30 && randomValue(randomSeed.getVal()) <= 55) {
-											powerList.push_back(Powerup((std::string)("HealthPowerup"), (*oIterator)->getPos(), (std::string)("models/health_powerup.ive"), mSceneTrans));
-										} 
-										else if (randomValue(randomSeed.getVal()) > 55 && randomValue(randomSeed.getVal()) <= 70) {
-											powerList.push_back(Powerup((std::string)("SkottPowerup"), (*oIterator)->getPos(), (std::string)("models/skott_powerup.ive"), mSceneTrans));
-										}
-										else if (randomValue(randomSeed.getVal()) > 70 && randomValue(randomSeed.getVal()) <= 85) {
-											powerList.push_back(Powerup((std::string)("ShieldPowerup"), (*oIterator)->getPos(), (std::string)("models/shield_powerup.ive"), mSceneTrans));
-										}
-										else if (randomValue(randomSeed.getVal()) > 85) {
-											powerList.push_back(Powerup((std::string)("EnginePowerup"), (*oIterator)->getPos(), (std::string)("models/engine_powerup.ive"), mSceneTrans));
-										}
+									if (player.getHP() <= 0) {
+										gameState.setVal(0); //Go back to welcome screen
+										newState.setVal(true);
 									}
-									if (gEngine->isMaster())
-										soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
-
-									objectList.erase(oIterator);
-								}
-								else {
-									if ((*oIterator)->getName() == "Enemy"){
-										osg::Vec3f diffVec = player.getPos() - (*oIterator)->getPos();
-										diffVec.normalize();
-										//billList.push_back(Billboard(800, (*oIterator)->getPos() + diffVec * 200, "textures/EnemyShield_01.png", mSceneTrans, 1.0, 1.0, "EnemyShield"));
-										billList.push_back(Billboard(800, (*oIterator)->getPos() + diffVec * 300, enemyShieldSequence, mSceneTrans, 1.0, 1.0, "EnemyShield"));
-									}
+									else
+										shakeTime.setVal(0.5);
 								}
 
 								mIterator->removeChildModel(mIterator->getModel());
 								missiles.erase(mIterator);
+								soundManager.play("laserHit", osg::Vec3f(0.0f, 0.0f, 0.0f));
+
+								goto stop;		//break all current loops. stop is located directly after the collision handling loops.
+							}
+
+							//Collision check with objects in the scene
+							for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
+							{
+								if ((mIterator->getPos() - (*oIterator)->getPos()).length() < mIterator->getColRad() + (*oIterator)->getColRad())
+								{
+									(*oIterator)->setHP((*oIterator)->getHP() - mIterator->getDmg());
+									if ((*oIterator)->getHP() <= 0) {
+										(*oIterator)->removeChildModel((*oIterator)->getModel());
+
+										if ((*oIterator)->getName() == "Asteroid") {
+											billList.push_back(Billboard(5000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
+
+											//50% chance to spawn health powerup
+											if (randomValue(randomSeed.getVal()) > 50) {
+												powerList.push_back(Powerup((std::string)("HealthPowerup"), (*oIterator)->getPos(), (std::string)("models/health_powerup.ive"), mSceneTrans));
+											}
+										}
+										if ((*oIterator)->getName() == "Enemy") {
+											billList.push_back(Billboard(1000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
+
+											//70% chance to spawn powerup (25% Health, 15% skott, 15% shield, 15% engine)
+											if (randomValue(randomSeed.getVal()) > 30 && randomValue(randomSeed.getVal()) <= 55) {
+												powerList.push_back(Powerup((std::string)("HealthPowerup"), (*oIterator)->getPos(), (std::string)("models/health_powerup.ive"), mSceneTrans));
+											}
+											else if (randomValue(randomSeed.getVal()) > 55 && randomValue(randomSeed.getVal()) <= 70) {
+												powerList.push_back(Powerup((std::string)("SkottPowerup"), (*oIterator)->getPos(), (std::string)("models/skott_powerup.ive"), mSceneTrans));
+											}
+											else if (randomValue(randomSeed.getVal()) > 70 && randomValue(randomSeed.getVal()) <= 85) {
+												powerList.push_back(Powerup((std::string)("ShieldPowerup"), (*oIterator)->getPos(), (std::string)("models/shield_powerup.ive"), mSceneTrans));
+											}
+											else if (randomValue(randomSeed.getVal()) > 85) {
+												powerList.push_back(Powerup((std::string)("EnginePowerup"), (*oIterator)->getPos(), (std::string)("models/engine_powerup.ive"), mSceneTrans));
+											}
+										}
+										if (gEngine->isMaster())
+											soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
+
+										objectList.erase(oIterator);
+									}
+									else {
+										if ((*oIterator)->getName() == "Enemy"){
+											osg::Vec3f diffVec = player.getPos() - (*oIterator)->getPos();
+											diffVec.normalize();
+											//billList.push_back(Billboard(800, (*oIterator)->getPos() + diffVec * 200, "textures/EnemyShield_01.png", mSceneTrans, 1.0, 1.0, "EnemyShield"));
+											billList.push_back(Billboard(1200, (*oIterator)->getPos() + diffVec * 300, enemyShieldSequence, mSceneTrans, 1.0, 1.0, "EnemyShield"));
+										}
+									}
+
+									mIterator->removeChildModel(mIterator->getModel());
+									missiles.erase(mIterator);
+
+									goto stop;
+								}
+							}
+						}
+					}
+
+					//Object collisions and AI updates
+					for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
+					{
+						//Check collision with player
+						if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
+						{
+							//deal damage and end game if below 0 HP
+							if (gEngine->isMaster()) {
+								if (shieldPowerup <= 0.0)
+									player.setHP(player.getHP() - 100 * eInputEngine);
+								else
+									player.setHP(player.getHP() - 100 * eInputEngine * 0.5);
+
+								soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
+								billList.push_back(Billboard(5000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
+								shakeTime.setVal(0.5);
+
+								if (player.getHP() <= 0) {
+									gameState.setVal(0); //Go back to welcome screen
+									newState.setVal(true);
+								}
+
+								if ((float)player.getHP() / (float)(player.getMaxHP()) <= 0.3 && !hpIsLow) {
+									hpIsLow = true;
+									soundManager.play("lowHP_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
+								}
+							}
+
+							(*oIterator)->removeChildModel((*oIterator)->getModel());
+							objectList.erase(oIterator);
+							goto stop;
+						}
+
+						//Collision check object-object
+						for (list<GameObject*>::iterator oIterator2 = objectList.begin(); oIterator2 != objectList.end(); oIterator2++)
+						{
+							if (oIterator != oIterator2 && ((*oIterator)->getPos() - (*oIterator2)->getPos()).length() < (*oIterator)->getColRad() + (*oIterator2)->getColRad())
+							{
+								(*oIterator)->removeChildModel((*oIterator)->getModel());
+								(*oIterator2)->removeChildModel((*oIterator2)->getModel());
+
+								billList.push_back(Billboard(3000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
+								if (gEngine->isMaster())
+									soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
+
+								objectList.erase(oIterator);
+								//objectList.erase(oIterator2);
 
 								goto stop;
 							}
 						}
-					}
-				}
 
-				//Object collisions and AI updates
-				for (list<GameObject*>::iterator oIterator = objectList.begin(); oIterator != objectList.end(); oIterator++)
-				{
-					//Check collision with player
-					if ((player.getPos() - (*oIterator)->getPos()).length() < player.getColRad() + (*oIterator)->getColRad())
-					{
-						if (gEngine->isMaster()) {
-							soundManager.play("explosion", osg::Vec3f(0.0f, 0.0f, 0.0f));
-						}
-
-						//deal damage and end game if below 0 HP
-						if (shieldPowerup <= 0.0)
-							player.setHP(player.getHP() - 70* eInputEngine);
-						else
-							player.setHP(player.getHP() - 70 * eInputEngine * 0.5);
-
-						if ((float)player.getHP() / (float)(player.getMaxHP()) < 0.31 && !hpIsLow) {
-							hpIsLow = true;
-							soundManager.play("lowHP_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
-						}
-						else if (player.getHP() <= 0) {
-							gameState.setVal(0); //Go back to welcome screen
-							newState.setVal(true);
-							missiles.clear();
-						}
-
-						(*oIterator)->removeChildModel((*oIterator)->getModel());
-						objectList.erase(oIterator);
-						shakeTime = 0.5;
-						goto stop;
-					}
-
-					//Collision check object-object
-					for (list<GameObject*>::iterator oIterator2 = objectList.begin(); oIterator2 != objectList.end(); oIterator2++)
-					{
-						if (oIterator != oIterator2 && ((*oIterator)->getPos() - (*oIterator2)->getPos()).length() < (*oIterator)->getColRad() + (*oIterator2)->getColRad())
+						//Update AI-related stuff
+						if ((*oIterator)->getName() == "Enemy")		//Synkningsproblem då nodes har olika framerates
 						{
-							(*oIterator)->removeChildModel((*oIterator)->getModel());
-							(*oIterator2)->removeChildModel((*oIterator2)->getModel());
-
-							billList.push_back(Billboard(3000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
-								if (gEngine->isMaster())
-								soundManager.play("explosion", player.getPos() - (*oIterator)->getPos());
-
-							objectList.erase(oIterator);
-							objectList.erase(oIterator2);
-
-							goto stop;
+							(*oIterator)->updateAI(player.getPos(), missiles, mSceneTrans, currDt.getVal());
 						}
 					}
 
-					//Update AI-related stuff
-					if ((*oIterator)->getName() == "Enemy")
+
+					//Update billboards
+					for (list<Billboard>::iterator bIterator = billList.begin(); bIterator != billList.end(); bIterator++)
 					{
-						(*oIterator)->updateAI(player.getPos(), missiles, mSceneTrans, gEngine->getDt());
-					}
-				}
+						//Update healthbar
+						if (bIterator->getName() == "Healthbar") {
+							float scale = (float)(player.getHP()) / (float)(player.getMaxHP());
+							bIterator->reScale(scale, 1.0f);
+						}
 
-				
-				//Update billboards
-				for (list<Billboard>::iterator bIterator = billList.begin(); bIterator != billList.end(); bIterator++)
-				{
-					//Update healthbar
-					if (bIterator->getName() == "Healthbar") {
-						float scale = (float)(player.getHP()) / (float)(player.getMaxHP());
-						bIterator->reScale(scale, 1.0f);
+						if (bIterator->isTimed()) {
+							if (bIterator->getLifeTime() <= 0.0) {
+								bIterator->removeBillboard();
+								billList.erase(bIterator);
+								goto stop;
+							}
+							else
+								bIterator->setLifeTime(bIterator->getLifeTime() - currDt.getVal());	//getDt() blir för stor här
+						}
 					}
 
-					if (bIterator->isTimed()) {
-						if (bIterator->getLifeTime() <= 0.0) {
-							bIterator->removeBillboard();
-							billList.erase(bIterator);
+					//Update powerups
+					for (list<Powerup>::iterator pIterator = powerList.begin(); pIterator != powerList.end(); pIterator++)
+					{
+						if ((pIterator->getPos() - player.getPos()).length() < pIterator->getColRad() + player.getColRad()) {
+
+
+							if (pIterator->getName() == "SkottPowerup")
+								skottPowerup.setVal(60.0f);
+							if (pIterator->getName() == "ShieldPowerup")
+								shieldPowerup.setVal(60.0f);
+							if (pIterator->getName() == "EnginePowerup")
+								enginePowerup.setVal(60.0f);
+							if (pIterator->getName() == "HealthPowerup"){
+								if (player.getHP() < 500 - 100)
+									player.setHP(player.getHP() + 100);
+								else
+									player.setHP(500);
+							}
+
+							soundManager.play("powerup", osg::Vec3f(0.0f, 0.0f, 0.0f));
+
+							//Remove from scene graph before deleting the object
+							pIterator->removeChildModel(pIterator->getModel());
+							powerList.erase(pIterator);
 							goto stop;
 						}
-						else
-							bIterator->setLifeTime(bIterator->getLifeTime() - gEngine->getDt());	//getDt() blir för stor här
+						pIterator->rotate(osg::Quat(0.2 * currDt.getVal(), 0.0, 0.0, 1.0));
 					}
-				}
-
-				//Update powerups
-				for (list<Powerup>::iterator pIterator = powerList.begin(); pIterator != powerList.end(); pIterator++)
-				{
-					if ((pIterator->getPos() - player.getPos()).length() < pIterator->getColRad() + player.getColRad()) {
+				stop: //this is where the "goto stop" command goes
 
 
-						if (pIterator->getName() == "SkottPowerup")
-							skottPowerup.setVal(60.0f);
-						if (pIterator->getName() == "ShieldPowerup")
-							shieldPowerup.setVal(60.0f);
-						if (pIterator->getName() == "EnginePowerup")
-							enginePowerup.setVal(60.0f);
-						if (pIterator->getName() == "HealthPowerup"){
-							if (player.getHP() < 500 - 100)
-								player.setHP(player.getHP() + 100);
-							else
-								player.setHP(500);
+					//Shake camera on player collision with objects
+					if (shakeTime.getVal() > 0.0) {
+
+						float angleX = 0;
+						float angleY = 0;
+
+						//Generate frequency range from 300 to 310 Hz
+						for (int i = 300; i < 310; i++) {
+							angleX += sin(i*shakeTime.getVal());
+							angleY += cos(i*shakeTime.getVal());
 						}
 
-						soundManager.play("powerup", osg::Vec3f(0.0f, 0.0f, 0.0f));
-
-						//Remove from scene graph before deleting the object
-						pIterator->removeChildModel(pIterator->getModel());
-						powerList.erase(pIterator);
-						goto stop;
-					}
-					pIterator->rotate(osg::Quat(0.2 * gEngine->getDt(), 0.0, 0.0, 1.0));
-				}
-			stop: //this is where the "goto stop" command goes
-
-
-				//Shake camera on player collision with objects
-				if (shakeTime > 0.0) {
-
-					float angleX = 0;
-					float angleY = 0;
-
-					//Generate frequency range from 300 to 310 Hz
-					for (int i = 300; i < 310; i++) {
-						angleX += sin(i*shakeTime);
-						angleY += cos(i*shakeTime);
+						if (shieldPowerup <= 0.0)
+							mNavTrans->preMult(osg::Matrix::rotate(shakeVal * currDt.getVal(), angleX, angleY, 0));
+						else
+							mNavTrans->preMult(osg::Matrix::rotate(shakeVal * currDt.getVal() * 0.5, angleX, angleY, 0));
+						shakeTime.setVal(shakeTime.getVal() - currDt.getVal());
 					}
 
-					if (shieldPowerup <= 0.0)
-						mNavTrans->preMult(osg::Matrix::rotate(shakeVal*gEngine->getDt(), angleX, angleY, 0));
-					else
-						mNavTrans->preMult(osg::Matrix::rotate(shakeVal*gEngine->getDt()*0.5, angleX, angleY, 0));
-					shakeTime -= gEngine->getDt();
-				}
-				
+					//Sync player hit points with all nodes
+					if (gEngine->isMaster())
+						hp.setVal(player.getHP());
+					player.setHP(hp.getVal());
 
-				//Reduce powerup timers
-				if (skottPowerup.getVal() > 0.0)
-					skottPowerup.setVal(skottPowerup.getVal() - gEngine->getDt());
-				if (shieldPowerup.getVal() > 0.0)
-					shieldPowerup.setVal(shieldPowerup.getVal() - gEngine->getDt());
-				if (enginePowerup.getVal() > 0.0)
-					enginePowerup.setVal(enginePowerup.getVal() - gEngine->getDt());
-	}
-		break;
+					//Reduce powerup timers
+					if (skottPowerup.getVal() > 0.0)
+						skottPowerup.setVal(skottPowerup.getVal() - currDt.getVal());
+					if (shieldPowerup.getVal() > 0.0)
+						shieldPowerup.setVal(shieldPowerup.getVal() - currDt.getVal());
+					if (enginePowerup.getVal() > 0.0)
+						enginePowerup.setVal(enginePowerup.getVal() - currDt.getVal());
+		}
+			break;
 
-		//Pre-game Screen
-	case 3: {
-				if (curr_time.getVal() > 38){
-					gameState.setVal(0); //Welcome Screen
-					newState.setVal(true);
-				}
+			//Pre-game Screen
+		case 3: {
+					if (curr_time.getVal() > 38){
+						gameState.setVal(0); //Welcome Screen
+						newState.setVal(true);
+					}
 
-	}
-		break;
-	}
+		}
+			break;
+		}
 
 
-	//update the frame stamp in the viewer to sync all
-	//time based events in osg
-	mFrameStamp->setFrameNumber(gEngine->getCurrentFrameNumber());
-	mFrameStamp->setReferenceTime(curr_time.getVal());
-	mFrameStamp->setSimulationTime(curr_time.getVal());
-	mViewer->setFrameStamp(mFrameStamp.get());
-	mViewer->advance(curr_time.getVal()); //update
+		//update the frame stamp in the viewer to sync all
+		//time based events in osg
+		mFrameStamp->setFrameNumber(gEngine->getCurrentFrameNumber());
+		mFrameStamp->setReferenceTime(curr_time.getVal());
+		mFrameStamp->setSimulationTime(curr_time.getVal());
+		mViewer->setFrameStamp(mFrameStamp.get());
+		mViewer->advance(curr_time.getVal()); //update
 
-	//traverse if there are any tasks to do
-	if (!mViewer->done())
-	{
-		mViewer->eventTraversal();
-		//update travelsal needed for pagelod object like terrain data etc.
-		mViewer->updateTraversal();
-	}
+		//traverse if there are any tasks to do
+		if (!mViewer->done())
+		{
+			mViewer->eventTraversal();
+			//update travelsal needed for pagelod object like terrain data etc.
+			mViewer->updateTraversal();
+		}
 }
 
 void myDrawFun()
 {
 	glLineWidth(2.0f);
 
-	gEngine->setNearAndFarClippingPlanes(0.1f, 1000000.0f);
+	gEngine->setNearAndFarClippingPlanes(0.1f, 5000000.0f);
 	const int * curr_vp = gEngine->getActiveViewportPixelCoords();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
 	mViewer->getCamera()->setProjectionMatrix(osg::Matrix(glm::value_ptr(gEngine->getActiveViewProjectionMatrix())));
@@ -924,6 +934,8 @@ void myDrawFun()
 void myEncodeFun()
 {
 	sgct::SharedData::instance()->writeFloat(&curr_time);
+	sgct::SharedData::instance()->writeFloat(&currDt);
+	sgct::SharedData::instance()->writeFloat(&demoTime);
 	sgct::SharedData::instance()->writeFloat(&playerPosX);
 	sgct::SharedData::instance()->writeFloat(&playerPosY);
 	sgct::SharedData::instance()->writeFloat(&playerPosZ);
@@ -947,11 +959,15 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeBool(&stats);
 	sgct::SharedData::instance()->writeBool(&takeScreenshot);
 	sgct::SharedData::instance()->writeBool(&light);
+	sgct::SharedData::instance()->writeFloat(&shakeTime);
+	sgct::SharedData::instance()->writeInt(&hp);
 }
 
 void myDecodeFun()
 {
 	sgct::SharedData::instance()->readFloat(&curr_time);
+	sgct::SharedData::instance()->readFloat(&currDt);
+	sgct::SharedData::instance()->readFloat(&demoTime);
 	sgct::SharedData::instance()->readFloat(&playerPosX);
 	sgct::SharedData::instance()->readFloat(&playerPosY);
 	sgct::SharedData::instance()->readFloat(&playerPosZ);
@@ -975,6 +991,8 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool(&stats);
 	sgct::SharedData::instance()->readBool(&takeScreenshot);
 	sgct::SharedData::instance()->readBool(&light);
+	sgct::SharedData::instance()->readFloat(&shakeTime);
+	sgct::SharedData::instance()->readInt(&hp);
 }
 
 void myCleanUpFun()

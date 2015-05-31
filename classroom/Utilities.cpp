@@ -1,9 +1,9 @@
 #include "Utilities.h"
 
 //Function for changing level. the list containing all objects and the relevant matrix transforms are called as reference. Note that the matrix transforms are pointers.
-void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, std::list<Billboard>& _billList, Player& _player, osg::ref_ptr<osg::MatrixTransform> _mNavTrans,
-	osg::ref_ptr<osg::MatrixTransform> _mRootTrans, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, osg::ref_ptr<osg::MatrixTransform> _mWelcomeTrans,
-	SoundManager& _soundManager, int _randomSeed, int _asteroidAmount, bool _isMaster)
+void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, std::list<Billboard>& _billList, 
+	Player& _player, osg::ref_ptr<osg::MatrixTransform> _mNavTrans, osg::ref_ptr<osg::MatrixTransform> _mRootTrans, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, 
+	osg::ref_ptr<osg::MatrixTransform> _mWelcomeTrans, SoundManager& _soundManager, int _randomSeed, int _asteroidAmount, bool _isMaster, int _bridgeModel)
 {
 
 	switch (_state) {
@@ -39,10 +39,10 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 		_billList.clear();
 
 		//Create the player. This will create matrix-transforms for the commandbridge and gunner as well.
-		_player = Player("Player1", osg::Vec3f(0, 0, 0), 250, 500, _mRootTrans);
+		_player = Player("Player1", osg::Vec3f(0, 0, 0), 250, 500, _mRootTrans, _bridgeModel);
 
 		//Create the crosshair and set to be child of gunnerTrans
-		_billList.push_back(Billboard(0.5, osg::Vec3f(0, 2.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0, "Crosshair"));
+		_billList.push_back(Billboard(0.45, osg::Vec3f(0, 1.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0, "Crosshair"));
 
 		//Create the healthbar and set to be child of healthbarTrans
 		_billList.push_back(Billboard(1.0, osg::Vec3f(0, 2.5, 0), "textures/healthbar_full.png", _player.getHealthbarTrans(), 3, 3 * (88.0 / 948), "Healthbar"));
@@ -56,6 +56,7 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 		_billList.push_back(Billboard(30000.0, osg::Vec3f(0, 80000, 0), "textures/Planet_three_moons.png", _mSceneTrans, 1.0, 1.0, "Planet3"));
 		_billList.push_back(Billboard(30000.0, osg::Vec3f(15000, -70000, 0), "textures/Planet_vit.png", _mSceneTrans, 1.0, 1.0, "Planet4"));
 
+
 		//Fill scene with 50 asteroids.
 		for (int i = 0; i < _asteroidAmount; i++)
 		{
@@ -68,15 +69,11 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 
 			_randomSeed = 50000 + rand3;
 
-			if (i % 3 == 0)
-				_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 2500.0f, 500, (std::string)("models/asteroid_5meter.ive"), _mSceneTrans, _objIndex++));
-			//else
-			//	_objList.push_back(new GameObject((std::string)("Asteroid"), osg::Vec3f(rand1, rand2, rand3), 2500.0f, 500, (std::string)("models/asteroid_1m.obj"), _mSceneTrans, _objIndex++));
+			//cout << "Asteroid spawned at: " << rand1 << ", " << rand2 << ", " << rand3 << "With objindex: " << _objIndex << endl;
 
-			//_objList.back()->setScale(randScale);						//pos variable need to take the scale into account. Save for later.
+			_objList.push_back(new GameObject("Asteroid", osg::Vec3f(rand1, rand2, rand3), 2500.0f, 500, "models/asteroid_5meter.ive", _mSceneTrans, _objIndex++));
 			_objList.back()->rotate(osg::Quat(_randomSeed, rand1, rand2, rand3));
 		}
-
 
 		if (_isMaster)
 			_soundManager.play("inGame_music", osg::Vec3f(0.0f, 0.0f, 0.0f));
@@ -127,4 +124,18 @@ void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans)
 	cout << "skybox finished loading!\n";
 	skybox->addChild(geode.get());
 	_mNavTrans->addChild(skybox);
+}
+
+
+
+sharedStruct newSharedStruct(osg::Vec3f _pos, osg::Quat _orientation, string _name, int _index)
+{
+	sharedStruct temp;
+
+	temp.index = _index;
+	temp.orientation = _orientation;
+	temp.pos = _pos;
+	temp.name = _name;
+
+	return temp;
 }

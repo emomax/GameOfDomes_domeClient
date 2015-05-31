@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sgct.h"
+
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>

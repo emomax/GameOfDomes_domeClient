@@ -7,9 +7,6 @@ Billboard::Billboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 	width = _width;// _width;
 	height = _height;// _height;
 
-	std::cout << "Billboard " << _name << " Setting width and height to: (" << _width << ", " << _height << ")\n";
-
-
 	if (_name == "Explosion") {
 		lifeTime = 30.0f;
 		//createExplosion(_scale, _pos, _theTrans, _width, _height);
@@ -24,7 +21,7 @@ Billboard::Billboard(float _scale, osg::Vec3f _pos, std::string _image, osg::ref
 		
 		//Follow cameras up-direction if the billboard is a crosshair.
 		if (_image == "textures/crosshair.png")
-			theBillboard->setMode(osg::Billboard::POINT_ROT_EYE);
+			theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
 		else
 			theBillboard->setMode(osg::Billboard::POINT_ROT_WORLD);
 		//theTexture = new osg::Texture2D;

@@ -18,7 +18,7 @@ public:
 		rigidBodyRadius = 0.0;
 		initTransform();
 	}
-	Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::ref_ptr<osg::MatrixTransform> _scene);
+	Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::ref_ptr<osg::MatrixTransform> _scene, int _bridgemodel);
 
 	osg::Vec3f getPos() { return pos; }
 	float getColRad() { return rigidBodyRadius; }

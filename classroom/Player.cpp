@@ -1,7 +1,7 @@
 
 #include "Player.h"
 
-Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::ref_ptr<osg::MatrixTransform> _scene)
+Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::ref_ptr<osg::MatrixTransform> _scene, int _bridgeModel)
 {
 	initTransform();
 	rigidBodyRadius = _colRad;
@@ -17,10 +17,24 @@ Player::Player(std::string _name, osg::Vec3f _pos, float _colRad, int _hp, osg::
 	healthbarTransform->postMult(osg::Matrix::rotate(-PI / 8, 1.0f, 0.0f, 0.0f));
 
 	bridgeTransform->postMult(osg::Matrix::rotate(PI + PI / 4.0, 1.0, 0.0, 0.0));
-	bridgeTransform->postMult(osg::Matrix::translate(0.0f, 10.0f, 0.0f));
 	//bridgeTransform->postMult(osg::Matrix::scale(0.1f, 0.1f, 0.1f));
 
-	bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga_lasse.ive"), bridgeTransform, 100000);
+	if (_bridgeModel == 1) {
+		bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga_lasselagom.ive"), bridgeTransform, 100000);
+		bridgeTransform->postMult(osg::Matrix::translate(0.0f, 3.5f, 0.0f));
+	}
+	if (_bridgeModel == 2) {
+		bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga_lasselagom.ive"), bridgeTransform, 100000);
+		bridgeTransform->postMult(osg::Matrix::translate(0.0f, 2.5f, 0.0f));
+	}
+	if (_bridgeModel == 3) {
+		bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga_lassesmal.ive"), bridgeTransform, 100000);
+		bridgeTransform->postMult(osg::Matrix::translate(0.0f, 3.5f, 0.0f));
+	}
+	if (_bridgeModel == 4) {
+		bridge = GameObject((std::string)("Kommandobryggan"), osg::Vec3f(0, 0, 0), 0, 100000, (std::string)("models/kurvbrygga_lassesmal.ive"), bridgeTransform, 100000);
+		bridgeTransform->postMult(osg::Matrix::translate(0.0f, 2.5f, 0.0f));
+	}
 }
 
 void Player::initTransform()

@@ -22,6 +22,8 @@ EnemyShip::EnemyShip(std::string _name, osg::Vec3f _pos, float _colRad, std::str
 
 void EnemyShip::updateAI(osg::Vec3f _playerPos, std::list<Projectile>& _missiles, osg::ref_ptr<osg::MatrixTransform> _mSceneTrans, float _dt)
 {
+	//std::cout << "enemypos = " << getPos().x() << ", " << getPos().y() << ", " << getPos().z() << std::endl;
+
 	osg::Vec3f diffVec = _playerPos - getPos();
 	osg::Quat tempQuat = getOrientation();
 	tempQuat.makeRotate(getDir(), diffVec);
@@ -41,7 +43,7 @@ void EnemyShip::updateAI(osg::Vec3f _playerPos, std::list<Projectile>& _missiles
 	tempQuat = tempQuat * tempQuat2;
 	
 	if (attackCooldown <= 0.0) {
-		//tempQuat är fel just nu
+		std::cout << "Enemy Laser!" << std::endl;
 		_missiles.push_back(Projectile((std::string)("Laser"), getPos() + tempQuat * osg::Vec3f(0.0, 350.0, 0.0), getDir(), tempQuat, (std::string)("models/skottg.ive"), _mSceneTrans, 50, 4000, false));
 		attackCooldown = 8.0;
 	}

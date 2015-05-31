@@ -47,7 +47,9 @@ private:
 		//naming conventions. The current name types are: (case sensitive)
 		//	Asteroid
 		//	Enemy
-		//	Laser
+		//	RedLaser
+		//	BlueLaser
+		//	GreenLaser
 		std::string name;
 		std::string description;
 };

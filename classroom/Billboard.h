@@ -20,13 +20,16 @@ public:
 	
 	void removeBillboard() { theBillboard->removeDrawables(0, theBillboard->getNumDrawables());  }
 
+	osg::Billboard* getBillboard() { return theBillboard; }
+
+	Billboard operator=(Billboard _b);
+
 	virtual ~Billboard() {}
 
 private:
 	float lifeTime = -1;	//-1 means the billboard will not be time-dependent
 
 	osg::Billboard* theBillboard;
-	osg::ref_ptr<osg::ImageSequence> explosionSequence;
 	osg::Texture2D* theTexture;
 	osg::TextureRectangle* theRect;
 	osg::TexMat* texMat;

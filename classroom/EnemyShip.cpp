@@ -44,7 +44,7 @@ void EnemyShip::updateAI(osg::Vec3f _playerPos, std::list<Projectile>& _missiles
 	
 	if (attackCooldown <= 0.0) {
 		std::cout << "Enemy Laser!" << std::endl;
-		_missiles.push_back(Projectile((std::string)("Laser"), getPos() + tempQuat * osg::Vec3f(0.0, 350.0, 0.0), getDir(), tempQuat, (std::string)("models/skottg.ive"), _mSceneTrans, 50, 4000, false));
+		_missiles.push_back(Projectile((std::string)("Laser"), getPos() + tempQuat * osg::Vec3f(0.0, 450.0, 0.0), getDir(), tempQuat, (std::string)("models/skottg.ive"), _mSceneTrans, 50, 4000, false));
 		attackCooldown = 8.0;
 	}
 	else

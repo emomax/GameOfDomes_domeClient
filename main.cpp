@@ -681,6 +681,8 @@ void myPostSyncPreDrawFun()
 										shakeTime.setVal(0.5);
 								}
 
+								//billList.push_back(Billboard(50, osg::Vec3f(0, 3.0, 0.6), enemyShieldSequence, player.getHealthbarTrans(), 1.0, 1.0, "EnemyShield"));
+
 								mIterator->removeChildModel(mIterator->getModel());
 								missiles.erase(mIterator);
 								soundManager.play("laserHit", osg::Vec3f(0.0f, 0.0f, 0.0f));
@@ -702,24 +704,25 @@ void myPostSyncPreDrawFun()
 
 											//50% chance to spawn health powerup
 											if (randomValue(randomSeed.getVal()) > 50) {
-												powerList.push_back(Powerup((std::string)("HealthPowerup"), (*oIterator)->getPos(), (std::string)("models/health_powerup.ive"), mSceneTrans));
+												powerList.push_back(Powerup("HealthPowerup", (*oIterator)->getPos(), "models/health_powerup.ive", mSceneTrans));
 											}
 										}
 										if ((*oIterator)->getName() == "Enemy") {
 											billList.push_back(Billboard(1000, (*oIterator)->getPos(), explosionSequence, mSceneTrans, 1.0, 1.0, "Explosion"));
-
+											cout << gEngine->getCurrentFrameNumber();
 											//70% chance to spawn powerup (25% Health, 15% skott, 15% shield, 15% engine)
-											if (randomValue(randomSeed.getVal()) > 30 && randomValue(randomSeed.getVal()) <= 55) {
-												powerList.push_back(Powerup((std::string)("HealthPowerup"), (*oIterator)->getPos(), (std::string)("models/health_powerup.ive"), mSceneTrans));
+											float temp = randomValue(randomSeed.getVal());
+											if (temp > 30 && temp <= 55) {
+												powerList.push_back(Powerup("HealthPowerup", (*oIterator)->getPos(), "models/health_powerup.ive", mSceneTrans));
 											}
-											else if (randomValue(randomSeed.getVal()) > 55 && randomValue(randomSeed.getVal()) <= 70) {
-												powerList.push_back(Powerup((std::string)("SkottPowerup"), (*oIterator)->getPos(), (std::string)("models/skott_powerup.ive"), mSceneTrans));
+											else if (temp > 55 && temp <= 70) {
+												powerList.push_back(Powerup("SkottPowerup", (*oIterator)->getPos(), "models/skott_powerup.ive", mSceneTrans));
 											}
-											else if (randomValue(randomSeed.getVal()) > 70 && randomValue(randomSeed.getVal()) <= 85) {
-												powerList.push_back(Powerup((std::string)("ShieldPowerup"), (*oIterator)->getPos(), (std::string)("models/shield_powerup.ive"), mSceneTrans));
+											else if (temp > 70 && temp <= 85) {
+												powerList.push_back(Powerup("ShieldPowerup", (*oIterator)->getPos(), "models/shield_powerup.ive", mSceneTrans));
 											}
-											else if (randomValue(randomSeed.getVal()) > 85) {
-												powerList.push_back(Powerup((std::string)("EnginePowerup"), (*oIterator)->getPos(), (std::string)("models/engine_powerup.ive"), mSceneTrans));
+											else if (temp > 85) {
+												powerList.push_back(Powerup("EnginePowerup", (*oIterator)->getPos(), "models/engine_powerup.ive", mSceneTrans));
 											}
 										}
 										if (gEngine->isMaster())
@@ -731,7 +734,6 @@ void myPostSyncPreDrawFun()
 										if ((*oIterator)->getName() == "Enemy"){
 											osg::Vec3f diffVec = player.getPos() - (*oIterator)->getPos();
 											diffVec.normalize();
-											//billList.push_back(Billboard(800, (*oIterator)->getPos() + diffVec * 200, "textures/EnemyShield_01.png", mSceneTrans, 1.0, 1.0, "EnemyShield"));
 											billList.push_back(Billboard(1200, (*oIterator)->getPos() + diffVec * 300, enemyShieldSequence, mSceneTrans, 1.0, 1.0, "EnemyShield"));
 										}
 									}
@@ -821,7 +823,7 @@ void myPostSyncPreDrawFun()
 								goto stop;
 							}
 							else
-								bIterator->setLifeTime(bIterator->getLifeTime() - currDt.getVal());	//getDt() blir för stor här
+								bIterator->setLifeTime(bIterator->getLifeTime() - currDt.getVal());
 						}
 					}
 
@@ -830,13 +832,18 @@ void myPostSyncPreDrawFun()
 					{
 						if ((pIterator->getPos() - player.getPos()).length() < pIterator->getColRad() + player.getColRad()) {
 
-
-							if (pIterator->getName() == "SkottPowerup")
+							if (pIterator->getName() == "SkottPowerup") {
 								skottPowerup.setVal(60.0f);
-							if (pIterator->getName() == "ShieldPowerup")
+								billList.push_back(Billboard(0.4, osg::Vec3f(0.5, 2.5, -0.35), "textures/icons_powerups/pu_skott.png", player.getHealthbarTrans(), 1.0, 1.0, "IconPowerup"));
+							}
+							if (pIterator->getName() == "ShieldPowerup") {
 								shieldPowerup.setVal(60.0f);
-							if (pIterator->getName() == "EnginePowerup")
+								billList.push_back(Billboard(0.4, osg::Vec3f(-0.0, 2.5, -0.35), "textures/icons_powerups/pu_shield.png", player.getHealthbarTrans(), 1.0, 1.0, "IconPowerup"));
+							}
+							if (pIterator->getName() == "EnginePowerup") {
 								enginePowerup.setVal(60.0f);
+								billList.push_back(Billboard(0.4, osg::Vec3f(-0.5, 2.5, -0.35), "textures/icons_powerups/pu_engine.png", player.getHealthbarTrans(), 1.0, 1.0, "IconPowerup"));
+							}
 							if (pIterator->getName() == "HealthPowerup"){
 								if (player.getHP() < 500 - 100)
 									player.setHP(player.getHP() + 100);
@@ -1108,7 +1115,7 @@ void initOSG()
 	//SGCT will handle the near and far planes
 	mViewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
 	mViewer->getCamera()->setClearColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.0f));
-
+	
 	//disable osg from clearing the buffers that will be done by SGCT
 	GLbitfield tmpMask = mViewer->getCamera()->getClearMask();
 	mViewer->getCamera()->setClearMask(tmpMask & (~(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));
@@ -1161,7 +1168,6 @@ void setupLightSource()
 void loadImages() {
 	explosionSequence = new osg::ImageSequence;
 	explosionSequence->setLength(1.2);
-
 	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00001.png"));
 	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00002.png"));
 	explosionSequence->addImage(osgDB::readImageFile("textures/Explosion_01_00003.png"));
@@ -1185,12 +1191,11 @@ void loadImages() {
 
 	enemyShieldSequence = new osg::ImageSequence;
 	enemyShieldSequence->setLength(0.3);
-
 	enemyShieldSequence->addImage(osgDB::readImageFile("textures/EnemyShield_1.png"));
 	enemyShieldSequence->addImage(osgDB::readImageFile("textures/EnemyShield_2.png"));
 	enemyShieldSequence->addImage(osgDB::readImageFile("textures/EnemyShield_3.png"));
 	enemyShieldSequence->addImage(osgDB::readImageFile("textures/EnemyShield_4.png"));
 	enemyShieldSequence->addImage(osgDB::readImageFile("textures/EnemyShield_5.png"));
 
-	std::cout << "Sequence of explosions loaded into main memory.\n";
+	std::cout << "Sequence of images loaded into main memory.\n";
 }

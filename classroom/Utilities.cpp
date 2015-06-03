@@ -45,8 +45,8 @@ void setGameState(int _state, int& _objIndex, std::list<GameObject*>& _objList, 
 		_billList.push_back(Billboard(0.45, osg::Vec3f(0, 1.5, 0), "textures/crosshair.png", _player.getGunnerTrans(), 1.0, 1.0, "Crosshair"));
 
 		//Create the healthbar and set to be child of healthbarTrans
-		_billList.push_back(Billboard(1.0, osg::Vec3f(0, 2.5, 0), "textures/healthbar_full.png", _player.getHealthbarTrans(), 3, 3 * (88.0 / 948), "Healthbar"));
-		_billList.push_back(Billboard(1.0, osg::Vec3f(0, 2.51, 0), "textures/healthbar_empty.png", _player.getHealthbarTrans(), 3, 3 * (88.0 / 948), "Healthbar_empty"));
+		_billList.push_back(Billboard(1.0, osg::Vec3f(0, 2.5, 0), "textures/healthbar_full.png", _player.getHealthbarTrans(), 3, 3 * (66.0 / 948), "Healthbar"));
+		_billList.push_back(Billboard(1.0, osg::Vec3f(0, 2.51, 0), "textures/healthbar_empty.png", _player.getHealthbarTrans(), 3, 3 * (66.0 / 948), "Healthbar_empty"));
 
 
 		//Create a billboard representing the sun
@@ -107,6 +107,15 @@ int randomValue(int _randomSeed)
 }
 
 
+bool isPowerupIcon(list<Billboard>::iterator _b)
+{
+	if (_b->getName() != "iconEnginePU" || _b->getName() != "iconShieldPU" || _b->getName() != "iconSkottPU")
+		return true;
+
+	return false;
+}
+
+
 //! Function for setting up skybox. Takes a shared pointer to the transform node.
 void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans)
 {
@@ -124,18 +133,4 @@ void makeSkyBox(osg::ref_ptr<osg::MatrixTransform> _mNavTrans)
 	cout << "skybox finished loading!\n";
 	skybox->addChild(geode.get());
 	_mNavTrans->addChild(skybox);
-}
-
-
-
-sharedStruct newSharedStruct(osg::Vec3f _pos, osg::Quat _orientation, string _name, int _index)
-{
-	sharedStruct temp;
-
-	temp.index = _index;
-	temp.orientation = _orientation;
-	temp.pos = _pos;
-	temp.name = _name;
-
-	return temp;
 }

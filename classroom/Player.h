@@ -41,6 +41,8 @@ public:
 	void setHealthbarTrans(osg::ref_ptr<osg::MatrixTransform> _t) { healthbarTransform = _t; }
 	void rotateGunnerTrans(osg::Quat _q);
 
+	void setEnginePowerup(int _value); //0 = inavctive, 1 = active, 2 = active_low
+
 	void resetPlayer();
 
 	void reScale(float _scaleX, float _scaleY);
